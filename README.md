@@ -27,7 +27,7 @@ The core philosophy is simple:
 
 Unpack this repository to the root of any project. The workflow files live in `.claude/` and a root-level `AGENTS.md` (which simply delegates to `.claude/CLAUDE.md`).
 
-Alternatively, install once into a shared environment directory (e.g. `~/mdk-env`) and open all your repos inside a single Cursor workspace - the workflow commands will be available across all of them.
+Alternatively, install once into a shared environment directory (e.g. `~/my-projects`) and open all your repos inside a single Cursor workspace - the workflow commands will be available across all of them.
 
 **Starting a new task**
 
