@@ -202,7 +202,6 @@ This enables:
 
 This is an actively evolving workflow used in production. Rough edges being worked on:
 
-- **Unknowns section hygiene**: the agent sometimes leaves stale entries in the brief's "unknowns" area longer than ideal. Occasional manual prompting required to clean up.
 - **Scratch file retention**: currently experimenting with whether to keep each 60/70 scratch file or overwrite. Git history is the current fallback.
 - **Git authorization**: the agent can be zealous with commits. Recommend adding context comments to constrain this, or explicitly set `commits_authorized: true` only when intended.
 
