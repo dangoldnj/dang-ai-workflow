@@ -13,9 +13,9 @@ Resume a workflow at the next step.
 ## Phase routing
 - If status is complete or abandoned, report and stop
 - If status is blocked, report the blocking condition and stop
-- If current_phase is null, route to 00-context (or the first phase that should run)
-- If status is in-progress and current_step is null, check the brief for unchecked plan steps; route to 60-prep to select the next unchecked step, or route to 80-verify if all plan steps are complete
-- If status is in-progress and current_step is set, route to 70-implement with that step
+- If current_phase is null, run 00-context (or the first phase that should run)
+- If status is in-progress and current_step is null, check the brief for unchecked plan steps; run 60-prep to select the next unchecked step, or run 80-verify if all plan steps are complete
+- If status is in-progress and current_step is set, run 70-implement with that step
 - Otherwise, continue by phase order from current_phase
 - After selecting a next phase, run phase precheck: node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug> <next-phase>
 - If the phase precheck reports errors, report the violations and stop
