@@ -7,6 +7,7 @@ Input:
 
 Do:
 - Create a short kebab-case slug from the task
+- Read .claude/commands/formats/phase.md
 - Create workspace: thoughts/shared/work/<slug>/
 - Write the task description to <workspace>/task.md
   - If the user provided the task as prose, write that prose

@@ -7,6 +7,7 @@ Resume a workflow at the next step.
 
 ## Do
 - Read thoughts/shared/work/<slug>/brief.md
+- Read .claude/commands/formats/phase.md
 - Run universal validator: node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug>
 - Identify next phase based on frontmatter current_phase and status
 
