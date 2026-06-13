@@ -10,7 +10,7 @@ import { splitSections } from './parse/section.ts';
 import { parseVerification } from './parse/verification.ts';
 
 export const parseBrief = (path: string): ParsedBrief => {
-  const raw = readFileSync(path, 'utf8');
+  const raw = readFileSync(path, 'utf8').replace(/\r\n?/g, '\n');
   const {
     data,
     body,

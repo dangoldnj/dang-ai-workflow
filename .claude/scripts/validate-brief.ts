@@ -9,6 +9,7 @@ import { checkPhasePreconditions } from './lib/validate/phase-preconditions.ts';
 import { checkPlanProgressConsistency } from './lib/validate/plan.ts';
 import { checkStatusTransitions } from './lib/validate/status-transitions.ts';
 import { checkTerminalState } from './lib/validate/terminal-state.ts';
+import { checkUnresolvedUnknowns } from './lib/validate/unknowns.ts';
 import { checkVerificationPreconditions } from './lib/validate/verification.ts';
 import type {
   ValidationResult,
@@ -33,6 +34,7 @@ export const validateBrief = (
     ...checkPlanProgressConsistency(brief),
     ...checkConstraintsTagging(brief),
     ...checkDecisionsShape(brief),
+    ...checkUnresolvedUnknowns(brief, options.beforePhase),
     ...checkVerificationPreconditions(brief),
     ...checkTerminalState(brief),
     ...(options.beforePhase
