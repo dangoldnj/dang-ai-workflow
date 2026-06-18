@@ -51,9 +51,9 @@ formats/phase.md
 - Convert findings into recommendations
 
 ## Output
+- Unknowns
 - Answers
+- Inferences
 - Files
 - Patterns
-- Inferences
-- Unknowns
 - Historical references

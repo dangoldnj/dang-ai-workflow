@@ -34,6 +34,6 @@ formats/phase.md
 - Propose solutions
 
 ## Output
+- User-blocking questions
 - Questions
 - Assumptions
-- User-blocking questions

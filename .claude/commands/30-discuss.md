@@ -43,13 +43,13 @@ formats/phase.md
 - Plan implementation steps
 
 ## Output
+- Open decisions
 - Current
 - Desired
+- Choice
 - Risks
 - Options ranked
-- Choice
 - Validation rationale
 - Confidence level (high / medium / low)
 - Confidence level justification per option
-- Open decisions
 - Historical references
