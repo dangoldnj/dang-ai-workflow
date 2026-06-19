@@ -11,7 +11,7 @@ It exists from init to close. Step files are scratchpads. This is the truth.
 
 ## Section Types
 
-- `A` append-only - entries never removed or modified
+- `A` append-only - entries never removed or modified, add at end
 - `B` blockers - entries never modified, but can be moved to become a Decision when resolved. See conflict protocol.
 - `C` checkboxes - updated in place after completion
 - `D` defined - the designated step sets and may revise this section
