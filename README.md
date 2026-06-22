@@ -136,9 +136,9 @@ Typical progression:
   |
 60  Prep
   |
-70  Implement           (loops per plan step)
+70  Implement           (loops between 60 & 70 for each plan step)
   |
-80  Verify              (loops with 70 until step confirmed)
+80  Verify
   |
 90  Close
 ```
