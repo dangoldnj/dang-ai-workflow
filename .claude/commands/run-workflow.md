@@ -13,7 +13,7 @@ Do:
   - If the user provided the task as prose, write that prose
   - If the user referenced an external file (plan, spec, doc), read that file and write a 1-paragraph summary plus a reference to the original
 - Write this workflow to: <workspace>/workflow.md
-- Ask user if commits are authorized; record in brief.md frontmatter as commits_authorize
+- Ask user if commits are authorized; record in brief.md frontmatter as commits_authorized
 - Write <workspace>/brief.md:
   - Follow format guidelines in: .claude/commands/formats/brief.md
   - Frontmatter: slug, status: not-started, current_phase: null, current_step: null, commits_authorized (ask user), created (today)

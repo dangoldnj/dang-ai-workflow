@@ -28,6 +28,8 @@ Fields:
 - commits_authorized: boolean, set at init by run-default
 - created: ISO date, set at init
 
+These are the exact frontmatter keys. Do not add, omit, or rename keys.
+
 Frontmatter is the source of truth for these fields. The markdown body must not restate them in a way that could disagree.
 
 ## Sections
