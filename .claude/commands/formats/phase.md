@@ -18,6 +18,7 @@ Write when the phase runs:
 - <workspace>/<phase-output-file>.md
 - <workspace>/brief.md (sections declared by the phase)
   Follow format guidelines in: .claude/commands/formats/brief.md
+- <workspace>/brief.md Decisions entry: `[phase] [ran] [phase completed]`
 - <workspace>/brief.md frontmatter `status` (if `not-started`, set to `in-planning`)
 - <workspace>/brief.md frontmatter `current_phase` (set to this phase name)
 
@@ -63,7 +64,7 @@ If the phase is "always run" by definition, this section does not need to be inc
 If the phase skips, it must:
 
 - Skip writing any phase specific document
-- Record the decision in brief.md Decisions, tagged with the phase name and reason
+- Record the decision in brief.md Decisions as `[phase] [skipped] [reason]`
 - If frontmatter `status` is `not-started`, set it to `in-planning`
 - Set frontmatter `current_phase` to its own name (skipped phases still count as the last completed phase)
 - Output the next command to run

@@ -43,7 +43,7 @@ Frontmatter is the source of truth for these fields. The markdown body must not 
 - Conflicts `B`
 - Unknowns `B`
 - Constraints `A` - Format: [phase] [constraint]. Initial entries written at init from task.md. Later phases append discovered constraints.
-- Decisions `A` - Format: [step] [choice] [why]
+- Decisions `A` - Format: [step] [choice] [why]. Phase accounting decisions use [phase] [ran|skipped] [why].
 - Progress `A` - One record per implementation step.
 
 ## Frontmatter status details
@@ -101,4 +101,4 @@ When a step obtains enough information to answer an Unknown:
 
 ## Skipped Phases
 
-Skipped phases are recorded as Decisions. Do not write placeholder phase documents or placeholder section contents for skipped work.
+Phase runs and skips are recorded as Decisions. Skipped phases must not write placeholder phase documents or placeholder section contents.

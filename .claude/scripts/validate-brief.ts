@@ -5,6 +5,7 @@ import { checkConstraintsTagging } from './lib/validate/constraints.ts';
 import { checkDecisionsShape } from './lib/validate/decisions.ts';
 import { checkFrontmatterShape } from './lib/validate/frontmatter.ts';
 import { checkParseErrors } from './lib/validate/parse-errors.ts';
+import { checkPhaseAccounting } from './lib/validate/phase-accounting.ts';
 import { checkPhasePreconditions } from './lib/validate/phase-preconditions.ts';
 import { checkPlanProgressConsistency } from './lib/validate/plan.ts';
 import { checkStatusTransitions } from './lib/validate/status-transitions.ts';
@@ -34,6 +35,7 @@ export const validateBrief = (
     ...checkPlanProgressConsistency(brief),
     ...checkConstraintsTagging(brief),
     ...checkDecisionsShape(brief),
+    ...checkPhaseAccounting(brief, options.workspacePath),
     ...checkUnresolvedUnknowns(brief, options.beforePhase),
     ...checkVerificationPreconditions(brief),
     ...checkTerminalState(brief),

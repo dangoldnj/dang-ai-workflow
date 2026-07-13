@@ -1,26 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs';
 import type { ParsedBrief, Phase } from '../types.ts';
 import { validationError } from './common.ts';
+import {
+  PHASE_OUTPUT_FILES,
+  SELF_GATED_PHASES,
+  isPriorPhaseAccountedFor,
+} from './phase-accounting.ts';
 import type { ValidationViolation } from './types.ts';
-
-const PHASE_OUTPUT_FILES = {
-  '00-context': '00-context.md',
-  '10-ask-questions': '10-ask-questions.md',
-  '20-research': '20-research.md',
-  '30-discuss': '30-discuss.md',
-  '40-structure': '40-structure.md',
-  '50-plan': '50-plan.md',
-  '60-prep': '60-prep.md',
-  '70-implement': '70-implement.md',
-  '80-verify': '80-verify.md',
-  '90-close': '90-close.md',
-} satisfies Record<Phase, string>;
-
-const SELF_GATED_PHASES: Phase[] = [
-  '00-context',
-  '10-ask-questions',
-  '20-research',
-];
 
 const REQUIRED_PRIOR_PHASES = {
   '00-context': [],
@@ -115,36 +101,19 @@ const checkRequiredPriorPhases = (
     }
 
     const file = PHASE_OUTPUT_FILES[requiredPhase];
-    const skippedText = SELF_GATED_PHASES.includes(requiredPhase)
-      ? ` and ${requiredPhase} is not recorded as skipped`
-      : '';
+    const expectedState = SELF_GATED_PHASES.includes(requiredPhase)
+      ? `[${requiredPhase}] [ran] with output or ` +
+        `[${requiredPhase}] [skipped] without output`
+      : `[${requiredPhase}] [ran] with output`;
 
     return [
       validationError(
-        'phase-precondition-missing-file',
-        `${phase} cannot run because ${file} is missing${skippedText}`,
-        file,
+        'phase-precondition-unaccounted-prior-phase',
+        `${phase} cannot run because ${requiredPhase} is not accounted for; expected ${expectedState}`,
+        file ?? undefined,
       ),
     ];
   });
-};
-
-const isPriorPhaseAccountedFor = (
-  brief: ParsedBrief,
-  phase: Phase,
-  workspacePath: string,
-): boolean => {
-  if (existsSync(`${workspacePath}/${PHASE_OUTPUT_FILES[phase]}`)) {
-    return true;
-  }
-
-  return (
-    SELF_GATED_PHASES.includes(phase) &&
-    brief.sections.Decisions.some(
-      decision =>
-        decision.step === phase && decision.choice.toLowerCase() === 'skipped',
-    )
-  );
 };
 
 const checkPrepPreconditions = (brief: ParsedBrief): ValidationViolation[] => {
