@@ -8,11 +8,6 @@ Always runs. A plan is required before implementation.
 ## Inherits
 formats/phase.md
 
-## Additional preconditions
-- <workspace>/20-research.md if present
-- <workspace>/30-discuss.md
-- <workspace>/40-structure.md
-
 ## Optional inputs
 - thoughts/shared/plans/
 

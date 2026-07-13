@@ -15,9 +15,6 @@ If skipped, record [00-context] [skipped] [task already specific] in Decisions.
 ## Inherits
 formats/phase.md
 
-## Additional preconditions
-None.
-
 ## Write
 - <workspace>/00-context.md
 - <workspace>/brief.md

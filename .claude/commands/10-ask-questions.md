@@ -15,9 +15,6 @@ If skipped, record [10-ask-questions] [skipped] [no unknowns to surface] in Deci
 ## Inherits
 formats/phase.md
 
-## Additional preconditions
-- <workspace>/00-context.md if present
-
 ## Write
 - <workspace>/10-ask-questions.md
 - <workspace>/brief.md

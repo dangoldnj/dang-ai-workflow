@@ -15,10 +15,6 @@ If skipped, record [20-research] [skipped] [no codebase questions to answer] in 
 ## Inherits
 formats/phase.md
 
-## Additional preconditions
-- <workspace>/00-context.md if present
-- <workspace>/10-ask-questions.md
-
 ## Optional inputs
 - thoughts/shared/research/
 - thoughts/shared/plans/

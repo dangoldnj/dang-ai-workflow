@@ -10,11 +10,6 @@ For trivial tasks, the output may be a single paragraph identifying the obvious 
 ## Inherits
 formats/phase.md
 
-## Additional preconditions
-- <workspace>/00-context.md if present
-- <workspace>/10-ask-questions.md if present
-- <workspace>/20-research.md if present
-
 ## Optional inputs
 - thoughts/shared/research/
 - thoughts/shared/plans/

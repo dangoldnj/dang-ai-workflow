@@ -9,8 +9,6 @@ Always runs after 70-implement.
 formats/phase.md
 
 ## Additional preconditions
-- <workspace>/50-plan.md
-- <workspace>/70-implement.md
 - Current diff
 
 ## Write

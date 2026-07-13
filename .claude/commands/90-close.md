@@ -10,10 +10,6 @@ This phase outputs no "Next command to run."
 ## Inherits
 formats/phase.md
 
-## Additional preconditions
-- <workspace>/50-plan.md
-- <workspace>/70-implement.md
-
 ## Write
 - <workspace>/brief.md
   - frontmatter: status, current_step (set to null)

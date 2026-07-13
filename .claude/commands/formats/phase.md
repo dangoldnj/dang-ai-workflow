@@ -12,6 +12,8 @@ Preconditions:
 - brief.md must pass validator with no errors for this phase
 - Stop if precondition fails; report which file is missing
 
+The phase precheck enforces workspace files, prior phase dependencies, and validator-owned state rules. Phase-specific command files should list only preconditions that are not represented in the validator.
+
 Write when the phase runs:
 - <workspace>/<phase-output-file>.md
 - <workspace>/brief.md (sections declared by the phase)

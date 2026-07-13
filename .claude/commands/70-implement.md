@@ -8,11 +8,6 @@ Always runs to execute the prepared step.
 ## Inherits
 formats/phase.md
 
-## Additional preconditions
-- <workspace>/50-plan.md
-- <workspace>/60-prep.md
-- <workspace>/70-implement.md if present
-
 ## Write
 - <workspace>/70-implement.md (scratch only)
 - <workspace>/brief.md

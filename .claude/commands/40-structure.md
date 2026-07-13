@@ -8,10 +8,6 @@ Always runs. Structure is required before planning.
 ## Inherits
 formats/phase.md
 
-## Additional preconditions
-- <workspace>/20-research.md if present
-- <workspace>/30-discuss.md
-
 ## Write
 - <workspace>/40-structure.md
 - <workspace>/brief.md (append to Decisions)

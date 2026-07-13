@@ -24,10 +24,6 @@ If Step selector is "next unchecked step":
 - Cross-reference the latest Progress entry; if status is manual-verification-needed, stop until user confirmation
 - If no Progress entries exist, select the first step from the Plan in execution order
 
-## Additional preconditions
-- <workspace>/50-plan.md
-- <workspace>/70-implement.md if present
-
 ## Write
 - <workspace>/60-prep.md
 - <workspace>/brief.md
