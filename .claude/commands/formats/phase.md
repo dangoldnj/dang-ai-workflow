@@ -16,6 +16,7 @@ Write when the phase runs:
 - <workspace>/<phase-output-file>.md
 - <workspace>/brief.md (sections declared by the phase)
   Follow format guidelines in: .claude/commands/formats/brief.md
+- <workspace>/brief.md frontmatter `status` (if `not-started`, set to `in-planning`)
 - <workspace>/brief.md frontmatter `current_phase` (set to this phase name)
 
 After all writes, validate brief.md. Do not consider the phase complete until validation passes.
@@ -61,6 +62,7 @@ If the phase skips, it must:
 
 - Skip writing any phase specific document
 - Record the decision in brief.md Decisions, tagged with the phase name and reason
+- If frontmatter `status` is `not-started`, set it to `in-planning`
 - Set frontmatter `current_phase` to its own name (skipped phases still count as the last completed phase)
 - Output the next command to run
 

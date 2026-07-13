@@ -18,6 +18,15 @@ export const checkStatusTransitions = (
     );
   }
 
+  if (fm.status === 'not-started' && fm.current_step !== null) {
+    v.push(
+      validationError(
+        'not-started-with-current-step',
+        `status is not-started but current_step is "${fm.current_step}"; expected null`,
+      ),
+    );
+  }
+
   if (fm.status === 'in-planning') {
     const checkedPlanItems = brief.sections.Plan.filter(item => item.checked);
     if (checkedPlanItems.length > 0) {
@@ -112,6 +121,18 @@ export const checkStatusTransitions = (
       validationError(
         'current-step-stale',
         `current_step is set but status is ${fm.status}; expected null`,
+      ),
+    );
+  }
+
+  if (
+    fm.current_step !== null &&
+    !isPhaseAtOrAfter(fm.current_phase, '60-prep')
+  ) {
+    v.push(
+      validationError(
+        'current-step-before-prep',
+        `current_step is set but current_phase is ${fm.current_phase}; expected 60-prep or later`,
       ),
     );
   }

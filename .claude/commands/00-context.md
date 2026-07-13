@@ -20,7 +20,9 @@ None.
 
 ## Write
 - <workspace>/00-context.md
-- <workspace>/brief.md (append to Constraints, tagged [00-context])
+- <workspace>/brief.md
+  - frontmatter: status (if not-started, set to in-planning)
+  - append to Constraints, tagged [00-context]
 
 ## Do
 - Restate the task in 1-2 sentences
