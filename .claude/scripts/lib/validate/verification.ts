@@ -50,6 +50,38 @@ export const checkVerificationPreconditions = (
     );
   }
 
+  if (brief.frontmatter.current_step !== null) {
+    v.push(
+      validationError(
+        'verification-pass-with-active-current-step',
+        `Verification status is pass but current_step is "${brief.frontmatter.current_step}"; expected null`,
+      ),
+    );
+  }
+
+  const checkedPlanItemsWithoutLatestCompleteProgress =
+    brief.sections.Plan.filter(item => {
+      if (!item.checked) {
+        return false;
+      }
+
+      const latestProgress = [...brief.sections.Progress]
+        .reverse()
+        .find(record => record.step === item.text);
+
+      return latestProgress?.status !== 'complete';
+    });
+
+  if (checkedPlanItemsWithoutLatestCompleteProgress.length > 0) {
+    v.push(
+      validationError(
+        'verification-pass-without-latest-complete-progress',
+        `Verification status is pass but ${checkedPlanItemsWithoutLatestCompleteProgress.length} checked Plan item(s) do not have latest Progress status complete`,
+        'Progress',
+      ),
+    );
+  }
+
   if (verification.automatedChecks !== 'passed') {
     v.push(
       validationError(
@@ -73,6 +105,19 @@ export const checkVerificationPreconditions = (
     );
   }
 
+  if (
+    verification.manualVerification === 'deferred' &&
+    !hasDeferredManualVerification(brief.sections.Decisions)
+  ) {
+    v.push(
+      validationError(
+        'verification-pass-with-manual-verification-deferred-without-decision',
+        'Verification status is pass with Manual verification deferred but Decisions has no [80-verify] [defer manual verification] rationale',
+        'Decisions',
+      ),
+    );
+  }
+
   return v;
 };
 
@@ -85,5 +130,13 @@ const hasDeferredAcceptanceCriterion = (
       decision.step === '80-verify' &&
       decision.choice.toLowerCase() ===
         `defer acceptance criterion: ${item.text}`.toLowerCase(),
+  );
+};
+
+const hasDeferredManualVerification = (decisions: DecisionEntry[]): boolean => {
+  return decisions.some(
+    decision =>
+      decision.step === '80-verify' &&
+      decision.choice.toLowerCase() === 'defer manual verification',
   );
 };

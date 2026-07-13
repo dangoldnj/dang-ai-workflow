@@ -171,6 +171,29 @@ const checkVerifyPreconditions = (
     );
   }
 
+  const completedPlanItemsNeedingManualVerification =
+    brief.sections.Plan.filter(item => {
+      if (!item.checked) {
+        return false;
+      }
+
+      const latestProgress = [...brief.sections.Progress]
+        .reverse()
+        .find(record => record.step === item.text);
+
+      return latestProgress?.manualVerification === 'needed';
+    });
+
+  if (completedPlanItemsNeedingManualVerification.length > 0) {
+    v.push(
+      validationError(
+        'verify-with-manual-verification-needed',
+        `80-verify cannot run because ${completedPlanItemsNeedingManualVerification.length} completed Plan item(s) still need manual verification`,
+        'Progress',
+      ),
+    );
+  }
+
   return v;
 };
 

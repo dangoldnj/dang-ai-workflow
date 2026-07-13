@@ -30,7 +30,7 @@ formats/phase.md
 
 ## Constraints
 - Treat unrelated changes as a failure unless justified
-- Do not infer manual verification; it must be confirmed by the user or explicitly deferred with rationale in Decisions.
+- Do not infer manual verification; it must be confirmed by the user or explicitly deferred with `[80-verify] [defer manual verification] [rationale]` in Decisions.
 
 ## Do not
 - Modify code
