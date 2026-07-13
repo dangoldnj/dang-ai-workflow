@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import type { ParsedBrief, Phase } from '../types.ts';
 import { validationError } from './common.ts';
 import {
@@ -43,7 +43,7 @@ export const checkPhasePreconditions = (
       return [
         ...workspaceViolations,
         ...priorPhaseViolations,
-        ...checkImplementPreconditions(brief, workspacePath),
+        ...checkImplementPreconditions(brief),
       ];
     case '80-verify':
       return [
@@ -131,7 +131,6 @@ const checkPrepPreconditions = (brief: ParsedBrief): ValidationViolation[] => {
 
 const checkImplementPreconditions = (
   brief: ParsedBrief,
-  workspacePath: string | undefined,
 ): ValidationViolation[] => {
   const v: ValidationViolation[] = [];
   const currentStep = brief.frontmatter.current_step;
@@ -141,32 +140,6 @@ const checkImplementPreconditions = (
       validationError(
         'implement-without-current-step',
         '70-implement cannot run because current_step is null',
-      ),
-    );
-  }
-
-  if (workspacePath === undefined) {
-    return v;
-  }
-
-  const prepPath = `${workspacePath}/60-prep.md`;
-  if (!existsSync(prepPath)) {
-    return v;
-  }
-
-  const selectedStep = readSelectedStep(prepPath);
-  if (selectedStep === null) {
-    v.push(
-      validationError(
-        'implement-without-selected-step',
-        '70-implement cannot run because 60-prep.md has no Selected step line',
-      ),
-    );
-  } else if (currentStep !== null && selectedStep !== currentStep) {
-    v.push(
-      validationError(
-        'implement-selected-step-mismatch',
-        `70-implement cannot run because 60-prep.md Selected step is "${selectedStep}" but current_step is "${currentStep}"`,
       ),
     );
   }
@@ -213,13 +186,4 @@ const checkClosePreconditions = (brief: ParsedBrief): ValidationViolation[] => {
       'Verification',
     ),
   ];
-};
-
-const readSelectedStep = (prepPath: string): string | null => {
-  const prep = readFileSync(prepPath, 'utf8');
-  return (
-    prep.match(/^Selected step:\s*(.+)$/m)?.[1]?.trim() ??
-    prep.match(/^-\s*Selected step:\s*(.+)$/m)?.[1]?.trim() ??
-    null
-  );
 };

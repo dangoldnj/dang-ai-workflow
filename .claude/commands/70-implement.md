@@ -61,7 +61,7 @@ brief.md is canonical for step status. 70-implement.md is scratch only.
 - Next step
 
 ## Progress record format
-Step: [exact step name]
+Step: [frontmatter current_step]
 Status: [step status]
 Automated checks:
 - [passed/failed/not run]

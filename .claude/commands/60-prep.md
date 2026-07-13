@@ -31,12 +31,11 @@ If Step selector is "next unchecked step":
 
 ## Do
 - Select exactly one implementation step
-- Write `Selected step: [exact Plan item text]` in 60-prep.md
+- Write a `Selected step:` line for the chosen Plan item in 60-prep.md
 - Reduce the plan to only what is needed for that step
 - List required files, commands, constraints, and stop conditions
 
 ## Constraints
-- The selected step must exactly match a Plan item.
 - If the current step cannot be identified confidently, stop
 - Do not prepare multiple steps
 - Do not include unrelated phases
@@ -46,7 +45,7 @@ If Step selector is "next unchecked step":
 
 ## Output
 - Minimal execution brief, including:
-  - Selected step: [exact Plan item text]
+  - Selected step
   - Selection rationale
   - Files
   - Commands
