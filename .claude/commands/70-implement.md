@@ -36,6 +36,7 @@ brief.md is canonical for step status. 70-implement.md is scratch only.
 - Update Progress in brief.md
 - Clear frontmatter `current_step` only when Progress for that step reaches complete
 - Pause after automated checks for manual verification when required
+- If the user confirms manual verification for a step parked at `manual-verification-needed`, rerun 70-implement for the active `current_step` only to record that confirmation and advance or complete the Progress record
 - Trust existing checkmarks when resuming; do not re-verify completed work
 - After completing one step, stop and report to the user - do not proceed to the next step until the user confirms
 

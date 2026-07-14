@@ -202,7 +202,7 @@ This enables:
 
 This is an actively evolving workflow used in production. Rough edges being worked on:
 
-- **Scratch file retention**: currently experimenting with whether to keep each 60/70 scratch file or overwrite. Git history is the current fallback.
+- **Scratch file retention**: canonical phase scratch files such as `60-prep.md` represent the current phase state and may be overwritten. If per-step prep history is useful, archive copies such as `60-prep.<step-id>.md`; keep `60-prep.md` current so validator checks remain deterministic.
 - **Git authorization**: the agent can be zealous with commits. Recommend adding context comments to constrain this, or explicitly set `commits_authorized: true` only when intended.
 
 ---

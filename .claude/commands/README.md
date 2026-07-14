@@ -12,6 +12,14 @@ After init, run phases in pipeline order. Each phase decides whether its work is
 
 Phases 00, 10, and 20 are self-gating and may skip when their work is not needed. Phases 30 through 90 always run.
 
+If 80-verify fails, do not jump directly to close. The rework loop is:
+
+```
+80-verify fail -> 60-prep -> 70-implement -> 80-verify
+```
+
+The validator `--next` result is authoritative when resuming a workspace.
+
 ## Formats
 
 - formats/brief.md - canonical state for a unit of work

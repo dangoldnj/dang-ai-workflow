@@ -30,7 +30,7 @@ formats/phase.md
     - Keep: brief_version, slug, status, created
     - Add: closed (today), summary (derived from What We Built)
     - Drop: current_phase, current_step, commits_authorized
-- Promotion overwrites existing files at destination paths when the local file is newer - otherwise, raise a Conflict
+- Promotion may overwrite an existing destination only when the destination already came from the same workspace slug and the source content differs. If the destination exists for a different workspace or cannot be proven to be the same workspace, raise a Conflict.
 
 ## Do not
 - Modify code

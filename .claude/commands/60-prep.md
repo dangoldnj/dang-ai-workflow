@@ -29,6 +29,8 @@ If Step selector is "next unchecked step":
 - <workspace>/brief.md
   - frontmatter: current_step (set to selected Plan item ID)
 
+The canonical `60-prep.md` is overwritten for each selected step. If per-step history is needed, create an archive copy such as `60-prep.<step-id>.md`, but keep `60-prep.md` as the current selected-step scratch file.
+
 ## Do
 - Select exactly one implementation step
 - Write a `Selected step:` line containing only the chosen Plan item ID in 60-prep.md
