@@ -12,7 +12,7 @@ formats/phase.md
 - <workspace>/70-implement.md (scratch only)
 - <workspace>/brief.md
   - frontmatter: status (set to in-progress on first run), current_step
-  - sections: Progress (append), Plan (check off completed step), Conflicts (if any)
+  - sections: Progress (create or update current step record), Plan (check off completed step), Conflicts (if any)
 
 brief.md is canonical for step status. 70-implement.md is scratch only.
 
@@ -26,6 +26,7 @@ brief.md is canonical for step status. 70-implement.md is scratch only.
   - manual-verification-needed
   - complete
 - Do not mark manual verification complete unless the user explicitly confirms it
+- Keep one Progress record per Plan step. Update the existing record for the current step as it advances.
 
 ## Do
 - Set frontmatter `status` to in-progress on first run

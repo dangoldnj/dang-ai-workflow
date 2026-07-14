@@ -1,3 +1,5 @@
+export const LAST_VALID_SNAPSHOT = '.brief.last-valid.md';
+
 export const WORKFLOW_STATUSES = [
   'not-started',
   'in-planning',
@@ -63,5 +65,5 @@ export const SECTION_TYPES = {
   Unknowns: 'B',
   Constraints: 'A',
   Decisions: 'A',
-  Progress: 'A',
+  Progress: 'D',
 } satisfies Record<(typeof BRIEF_SECTIONS)[number], BriefSectionType>;

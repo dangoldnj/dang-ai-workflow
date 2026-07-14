@@ -3,7 +3,11 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test, { type TestContext } from 'node:test';
-import { BRIEF_SECTIONS, PHASES } from './lib/constants.ts';
+import {
+  BRIEF_SECTIONS,
+  LAST_VALID_SNAPSHOT,
+  PHASES,
+} from './lib/constants.ts';
 import { parseBrief } from './lib/parse-brief.ts';
 import type { Phase } from './lib/types.ts';
 import { PHASE_OUTPUT_FILES } from './lib/validate/phase-accounting.ts';
@@ -66,6 +70,7 @@ type WorkspaceFixture = {
   includeTask?: boolean;
   lineEnding?: '\n' | '\r\n';
   sectionTitleOverrides?: Partial<Record<BriefSectionTitle, string>>;
+  lastValidBrief?: string;
 };
 
 const DEFAULT_FRONTMATTER: Record<FrontmatterKey, FrontmatterValue> = {
@@ -86,6 +91,14 @@ const makeWorkspace = (
 
   const briefPath = join(dir, 'brief.md');
   writeFileSync(briefPath, buildBrief(fixture), 'utf8');
+
+  if (fixture.lastValidBrief !== undefined) {
+    writeFileSync(
+      join(dir, LAST_VALID_SNAPSHOT),
+      fixture.lastValidBrief,
+      'utf8',
+    );
+  }
 
   if (fixture.includeTask !== false) {
     writeFileSync(join(dir, 'task.md'), 'Task fixture.\n', 'utf8');
@@ -364,6 +377,154 @@ test('section headings must match the canonical brief shape', t => {
       },
     }),
     'section-missing',
+  );
+});
+
+test('last-valid snapshot enforces append-only section prefixes', t => {
+  const result = parseAndValidate(
+    t,
+    {
+      constraints: ['- [init] Preserve public API'],
+      lastValidBrief: buildBrief({
+        constraints: [
+          '- [init] Preserve CLI behavior',
+          '- [init] Keep validation deterministic',
+        ],
+      }),
+    },
+    { workspacePath: true },
+  );
+
+  assertHasInvariant(result, 'append-only-entry-modified');
+  assertHasInvariant(result, 'append-only-entry-removed');
+});
+
+test('last-valid snapshot allows Progress records to be updated in place', t => {
+  const outputs = outputsThrough('70-implement');
+  outputs['60-prep.md'] = 'Selected step: Implement validator tests\n';
+
+  const result = parseAndValidate(
+    t,
+    {
+      frontmatter: {
+        status: 'in-progress',
+        current_phase: '70-implement',
+        current_step: 'Implement validator tests',
+      },
+      plan: [{ text: 'Implement validator tests' }],
+      decisions: ranDecisionsThrough('70-implement'),
+      progress: [
+        {
+          step: 'Implement validator tests',
+          status: 'in-progress',
+          automatedChecks: 'not-run',
+          manualVerification: 'needed',
+        },
+      ],
+      outputs,
+      lastValidBrief: buildBrief({
+        frontmatter: {
+          status: 'in-progress',
+          current_phase: '70-implement',
+          current_step: 'Implement validator tests',
+        },
+        plan: [{ text: 'Implement validator tests' }],
+        decisions: ranDecisionsThrough('70-implement'),
+        progress: [
+          {
+            step: 'Implement validator tests',
+            status: 'not-started',
+            automatedChecks: 'not-run',
+            manualVerification: 'needed',
+          },
+        ],
+      }),
+    },
+    { workspacePath: true },
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.violations, []);
+});
+
+test('Progress allows only one record per step', t => {
+  assertHasInvariant(
+    parseAndValidate(t, {
+      plan: [{ text: 'Implement validator tests' }],
+      progress: [
+        { step: 'Implement validator tests', status: 'in-progress' },
+        { step: 'Implement validator tests', status: 'complete' },
+      ],
+    }),
+    'progress-duplicate-step',
+  );
+});
+
+test('last-valid snapshot allows blockers moved to Decisions', t => {
+  const result = parseAndValidate(
+    t,
+    {
+      decisions: [
+        '- [30-discuss] [resolved unknown] [User confirmed commits are authorized]',
+      ],
+      lastValidBrief: buildBrief({
+        unknowns: ['Need user approval before committing'],
+      }),
+    },
+    { workspacePath: true },
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.violations, []);
+});
+
+test('last-valid snapshot does not count phase accounting as blocker resolution', t => {
+  assertHasInvariant(
+    parseAndValidate(
+      t,
+      {
+        frontmatter: {
+          status: 'in-planning',
+          current_phase: '30-discuss',
+        },
+        decisions: [
+          ...ranDecisionsThrough('20-research'),
+          '- [30-discuss] [ran] [Discussed approach]',
+        ],
+        lastValidBrief: buildBrief({
+          frontmatter: {
+            status: 'in-planning',
+            current_phase: '20-research',
+          },
+          decisions: ranDecisionsThrough('20-research'),
+          unknowns: ['Need user approval before committing'],
+        }),
+      },
+      { workspacePath: true },
+    ),
+    'append-only-entry-removed',
+  );
+});
+
+test('last-valid snapshot rejects modified unresolved blockers', t => {
+  assertHasInvariant(
+    parseAndValidate(
+      t,
+      {
+        frontmatter: {
+          status: 'blocked',
+        },
+        conflicts: ['API choice needs confirmation'],
+        lastValidBrief: buildBrief({
+          frontmatter: {
+            status: 'blocked',
+          },
+          conflicts: ['API direction needs confirmation'],
+        }),
+      },
+      { workspacePath: true },
+    ),
+    'append-only-entry-modified',
   );
 });
 

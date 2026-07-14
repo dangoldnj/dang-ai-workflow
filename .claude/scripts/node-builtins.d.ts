@@ -13,6 +13,7 @@ declare module 'node:fs' {
   export const existsSync: (path: string) => boolean;
   export const mkdtempSync: (prefix: string) => string;
   export const readFileSync: (path: string, encoding: string) => string;
+  export const copyFileSync: (src: string, dest: string, mode?: string) => void;
   export const rmSync: (
     path: string,
     options?: { recursive?: boolean; force?: boolean },

@@ -1,8 +1,10 @@
+import { copyFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseBrief } from './lib/parse-brief.ts';
-import { PHASES } from './lib/constants.ts';
+import { LAST_VALID_SNAPSHOT, PHASES } from './lib/constants.ts';
 import type { ParsedBrief, Phase } from './lib/types.ts';
+import { checkAppendOnlySnapshot } from './lib/validate/append-only.ts';
 import { checkConstraintsTagging } from './lib/validate/constraints.ts';
 import { checkDecisionsShape } from './lib/validate/decisions.ts';
 import { checkFrontmatterShape } from './lib/validate/frontmatter.ts';
@@ -36,6 +38,7 @@ export const validateBrief = (
     ...checkParseErrors(brief),
     ...checkFrontmatterShape(brief),
     ...checkSectionShape(brief),
+    ...checkAppendOnlySnapshot(brief, options.workspacePath),
     ...checkStatusTransitions(brief),
     ...checkPlanProgressConsistency(brief),
     ...checkConstraintsTagging(brief),
@@ -94,6 +97,21 @@ const main = (): void => {
     ...(beforePhase !== undefined ? { beforePhase: beforePhase as Phase } : {}),
     workspacePath: workspace,
   });
+
+  if (result.ok) {
+    try {
+      copyFileSync(
+        `${workspace}/brief.md`,
+        `${workspace}/${LAST_VALID_SNAPSHOT}`,
+      );
+    } catch (err) {
+      console.error(
+        `Failed to update ${workspace}/${LAST_VALID_SNAPSHOT}:`,
+        err instanceof Error ? err.message : err,
+      );
+      process.exit(2);
+    }
+  }
 
   if (result.violations.length === 0) {
     console.log('ok');

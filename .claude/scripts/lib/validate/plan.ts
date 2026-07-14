@@ -7,6 +7,26 @@ export const checkPlanProgressConsistency = (
 ): ValidationViolation[] => {
   const v: ValidationViolation[] = [];
 
+  const progressCountsByStep = new Map<string, number>();
+  for (const record of brief.sections.Progress) {
+    progressCountsByStep.set(
+      record.step,
+      (progressCountsByStep.get(record.step) ?? 0) + 1,
+    );
+  }
+
+  for (const [step, count] of progressCountsByStep) {
+    if (count > 1) {
+      v.push(
+        validationError(
+          'progress-duplicate-step',
+          `Progress has ${count} records for step "${step}"; expected one mutable record per Plan item`,
+          'Progress',
+        ),
+      );
+    }
+  }
+
   // Every Progress record's step name should appear as a Plan item
   const planTexts = new Set(brief.sections.Plan.map(p => p.text));
   for (const record of brief.sections.Progress) {

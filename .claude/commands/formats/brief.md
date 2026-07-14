@@ -44,7 +44,7 @@ Frontmatter is the source of truth for these fields. The markdown body must not 
 - Unknowns `B`
 - Constraints `A` - Format: [phase] [constraint]. Initial entries written at init from task.md. Later phases append discovered constraints.
 - Decisions `A` - Format: [step] [choice] [why]. Phase accounting decisions use [phase] [ran|skipped] [why].
-- Progress `A` - One record per implementation step.
+- Progress `D` - One record per implementation step. Update the existing record in place as that step advances.
 
 ## Frontmatter status details
 
@@ -92,13 +92,11 @@ If any step finds reality contradicts the brief:
 - Stop. Do not proceed until the user resolves it.
 
 When the user confirms resolution:
-- Append a resolution note to the Conflicts entry
-- Move the entry to Decisions with format: [step] [choice] [why]
+- Move the entry to Decisions with format: [step] [choice] [why]. Record the actual resolution; exact blocker text does not need to be preserved.
 - Set frontmatter `status` back to in-progress
 
 When a step obtains enough information to answer an Unknown:
-- Append a resolution note to the Unknown entry
-- Move the entry to Decisions with format: [step] [choice] [why]
+- Move the entry to Decisions with format: [step] [choice] [why]. Record the actual answer; exact unknown text does not need to be preserved.
 
 ## Skipped Phases
 

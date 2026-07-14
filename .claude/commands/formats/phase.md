@@ -53,6 +53,8 @@ If it reports errors, the phase has produced an invalid state. Report the violat
 
 If the validator reports only warnings, the phase may proceed but must surface the warnings in its phase output.
 
+Successful validation refreshes `<workspace>/.brief.last-valid.md`. This file is validator-owned; do not edit it manually.
+
 The validator is the source of truth for brief.md structural invariants. Phases should not re-implement these checks in prose. Semantic correctness (whether the plan is good, whether the research is thorough) remains the phase's responsibility.
 
 ## Self-gating
