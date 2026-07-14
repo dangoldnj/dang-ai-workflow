@@ -26,6 +26,7 @@ formats/phase.md
 - Note any historical files consulted
 - Present current state, design options, and open questions
 - Ask only questions that cannot be answered from codebase research
+- Write Acceptance Criteria as checkbox items with stable `AC` IDs, e.g. `- [ ] [AC1] Criterion`
 - Follow presentation guidelines in: .claude/commands/formats/presentation.md
 - Lead with the chosen approach and confidence level
 

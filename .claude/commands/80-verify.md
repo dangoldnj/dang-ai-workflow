@@ -31,6 +31,7 @@ formats/phase.md
 ## Constraints
 - Treat unrelated changes as a failure unless justified
 - Do not infer manual verification; it must be confirmed by the user or explicitly deferred with `[80-verify] [defer manual verification] [rationale]` in Decisions.
+- Unmet Acceptance Criteria may be deferred only by ID, e.g. `[80-verify] [defer acceptance criterion: AC2] [rationale]`.
 
 ## Do not
 - Modify code

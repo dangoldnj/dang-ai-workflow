@@ -17,7 +17,7 @@ formats/phase.md
 brief.md is canonical for step status. 70-implement.md is scratch only.
 
 ## Progress tracking
-- Record the step exactly as frontmatter `current_step`
+- Record the step ID exactly as frontmatter `current_step`
 - Mark step status as one of:
   - not-started
   - in-progress
@@ -62,7 +62,7 @@ brief.md is canonical for step status. 70-implement.md is scratch only.
 - Next step
 
 ## Progress record format
-Step: [frontmatter current_step]
+Step: [frontmatter current_step ID]
 Status: [step status]
 Automated checks:
 - [passed/failed/not run]

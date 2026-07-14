@@ -179,7 +179,7 @@ const checkVerifyPreconditions = (
 
       const latestProgress = [...brief.sections.Progress]
         .reverse()
-        .find(record => record.step === item.text);
+        .find(record => record.step === item.id);
 
       return latestProgress?.manualVerification === 'needed';
     });

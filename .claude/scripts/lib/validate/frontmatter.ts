@@ -1,9 +1,10 @@
 import { validationError } from './common.ts';
-import { PHASES, WORKFLOW_STATUSES } from '../constants.ts';
+import { BRIEF_VERSION, PHASES, WORKFLOW_STATUSES } from '../constants.ts';
 import type { ParsedBrief, Phase } from '../types.ts';
 import type { ValidationViolation } from './types.ts';
 
 const EXPECTED_FRONTMATTER_KEYS = [
+  'brief_version',
   'slug',
   'status',
   'current_phase',
@@ -51,6 +52,18 @@ export const checkFrontmatterShape = (
         ),
       );
     }
+  }
+
+  if (
+    actualKeys.has('brief_version') &&
+    fm.brief_version !== BRIEF_VERSION
+  ) {
+    v.push(
+      validationError(
+        'frontmatter-brief-version',
+        `brief_version must be ${BRIEF_VERSION}; got: ${fm.brief_version}`,
+      ),
+    );
   }
 
   if (actualKeys.has('slug') && typeof fm.slug !== 'string') {

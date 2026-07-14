@@ -14,6 +14,7 @@ node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug> 70-implement
 node .claude/scripts/validate-brief.ts --format json thoughts/shared/work/<slug>
 node .claude/scripts/validate-brief.ts --next thoughts/shared/work/<slug>
 node .claude/scripts/validate-brief.ts --list-invariants
+node .claude/scripts/migrate-brief.ts --write thoughts/shared/work/<slug>
 ```
 
 `--json` is accepted as an alias for `--format json`.
@@ -85,3 +86,14 @@ The hook helper reads Claude Code's hook payload from stdin and ignores writes o
 ## Invariant Catalog
 
 Run `node .claude/scripts/validate-brief.ts --list-invariants` to print every invariant code that the validator can emit. Use `--format json` when another tool needs the list.
+
+## Brief Migration
+
+`migrate-brief.ts` upgrades old text-keyed briefs to `brief_version: 2`.
+
+```bash
+node .claude/scripts/migrate-brief.ts thoughts/shared/work/<slug>
+node .claude/scripts/migrate-brief.ts --write thoughts/shared/work/<slug>
+```
+
+The migrator rewrites only `brief.md`. It adds IDs to Plan and Acceptance Criteria, rewrites `current_step`, rewrites Progress `Step:` references, and rewrites Acceptance Criteria deferral Decisions. It does not edit phase scratch files such as `60-prep.md`; update those manually if validation reports a stale `Selected step:` line.

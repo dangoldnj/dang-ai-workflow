@@ -21,11 +21,12 @@ It exists from init to close. Step files are scratchpads. This is the truth.
 Every brief.md begins with a YAML frontmatter block. This is the machine-readable state of the work. The markdown body is the human-readable record.
 
 Fields:
+- brief_version: 2
 - slug: kebab-case identifier, set at init
 - status: not-started / in-planning / in-progress / blocked / complete / abandoned
 - current_phase: null at init, highest completed or skipped phase otherwise. Reruns of earlier phases must not move it backward.
-- current_step: null until 60-prep selects an implementation step, then the selected step name; cleared when that step reaches complete
-- commits_authorized: boolean, set at init by run-default
+- current_step: null until 60-prep selects an implementation step, then the selected Plan item ID; cleared when that step reaches complete
+- commits_authorized: boolean, set at init by run-workflow
 - created: ISO date, set at init
 
 These are the exact frontmatter keys. Do not add, omit, or rename keys.
@@ -37,8 +38,8 @@ Frontmatter is the source of truth for these fields. The markdown body must not 
 - What We Built `D` - Written only by 90-close.
 - Goal `D` - 1-2 sentences describing what the completed work will look like. Describes the deliverable, not the act of building it.
 - Approach `D`
-- Plan `C`
-- Acceptance Criteria `C`
+- Plan `C` - Markdown checkbox items with stable IDs: `- [ ] [S1] Step title`. IDs may be grouped, e.g. `A1`, `A2`, `B1`; they must be unique and end with a number.
+- Acceptance Criteria `C` - Markdown checkbox items with stable IDs: `- [ ] [AC1] Criterion title`. IDs must start with `AC`, be unique, and end with a number.
 - Verification `D` - Initialized by run-workflow with a non-passing default record, then set by 80-verify. Machine-readable verification result for close.
 - Conflicts `B`
 - Unknowns `B`
@@ -58,7 +59,7 @@ Transitions:
 
 `not-started` is init-only. Once any phase runs or skips, `status` must be `in-planning` or later.
 When a phase runs or skips, set `current_phase` to that phase only if it is later than the current value.
-60-prep sets `current_step` to the selected Plan step without changing `status`.
+60-prep sets `current_step` to the selected Plan step ID without changing `status`.
 70-implement sets `status` to in-progress on first run and clears `current_step` when Progress for that step reaches complete.
 If work blocks, leave `current_step` set so the blocked step remains visible.
 
@@ -92,11 +93,11 @@ If any step finds reality contradicts the brief:
 - Stop. Do not proceed until the user resolves it.
 
 When the user confirms resolution:
-- Move the entry to Decisions with format: [step] [choice] [why]. Record the actual resolution; exact blocker text does not need to be preserved.
+- Move the entry to Decisions with format: [step-or-phase] [choice] [why]. Record the actual resolution; exact blocker text does not need to be preserved.
 - Set frontmatter `status` back to in-progress
 
 When a step obtains enough information to answer an Unknown:
-- Move the entry to Decisions with format: [step] [choice] [why]. Record the actual answer; exact unknown text does not need to be preserved.
+- Move the entry to Decisions with format: [step-or-phase] [choice] [why]. Record the actual answer; exact unknown text does not need to be preserved.
 
 ## Skipped Phases
 

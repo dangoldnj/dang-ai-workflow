@@ -97,6 +97,13 @@ test('frontmatter parser and shape errors are reported', t => {
 
   assertHasInvariant(
     parseAndValidate(t, {
+      frontmatter: { brief_version: 1 },
+    }),
+    'frontmatter-brief-version',
+  );
+
+  assertHasInvariant(
+    parseAndValidate(t, {
       frontmatter: { current_phase: '99-done' },
     }),
     'frontmatter-current-phase',
@@ -169,7 +176,7 @@ test('parse errors for structured sections are reported', t => {
       rawBrief: buildBrief({
         plan: [{ text: 'Implement validator tests' }],
       }).replace(
-        '- [ ] Implement validator tests',
+        '- [ ] [S1] Implement validator tests',
         '- Implement validator tests',
       ),
     }),
@@ -307,7 +314,7 @@ test('Progress parser errors are reported', t => {
 
   assertHasInvariant(
     parseAndValidate(t, {
-      rawBrief: base.replace('Step: Implement validator tests\n', ''),
+      rawBrief: base.replace('Step: S1\n', ''),
     }),
     'progress-step-missing',
   );

@@ -15,6 +15,7 @@ export type Phase = (typeof PHASES)[number];
 type BriefSection = (typeof BRIEF_SECTIONS)[number];
 
 export type BriefFrontmatter = {
+  brief_version: number;
   slug: string;
   status: WorkflowStatus;
   current_phase: Phase | null;
@@ -38,7 +39,12 @@ export type DecisionEntry = {
   raw: string;
 };
 
-export type PlanItem = { text: string; checked: boolean; raw: string };
+export type PlanItem = {
+  id?: string;
+  text: string;
+  checked: boolean;
+  raw: string;
+};
 
 export type ProgressRecord = {
   step: string;

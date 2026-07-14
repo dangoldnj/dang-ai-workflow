@@ -27,7 +27,7 @@ formats/phase.md
   - Copy 30-discuss.md to thoughts/shared/discussions/<date>-<slug>.md if present
   - Copy 50-plan.md to thoughts/shared/plans/<date>-<slug>.md
   - Copy brief.md to thoughts/shared/briefs/<date>-<slug>.md with transformed frontmatter:
-    - Keep: slug, status, created
+    - Keep: brief_version, slug, status, created
     - Add: closed (today), summary (derived from What We Built)
     - Drop: current_phase, current_step, commits_authorized
 - Promotion overwrites existing files at destination paths when the local file is newer - otherwise, raise a Conflict

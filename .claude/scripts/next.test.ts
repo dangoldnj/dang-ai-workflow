@@ -53,7 +53,7 @@ test('next action routes active implementation steps to 70-implement', t => {
         decisions: ranDecisionsThrough('60-prep'),
         outputs: {
           ...outputsThrough('60-prep'),
-          '60-prep.md': 'Selected step: Implement validator tests\n',
+          '60-prep.md': 'Selected step: S1\n',
         },
       }),
     ),

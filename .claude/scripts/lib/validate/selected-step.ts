@@ -38,14 +38,14 @@ export const checkSelectedStep = (
   }
 
   const selectedStep = selectedSteps[0];
-  const planItem = brief.sections.Plan.find(item => item.text === selectedStep);
+  const planItem = brief.sections.Plan.find(item => item.id === selectedStep);
   const v: ValidationViolation[] = [];
 
   if (planItem === undefined) {
     v.push(
       validationError(
         'selected-step-not-in-plan',
-        `60-prep.md Selected step "${selectedStep}" does not match any Plan item`,
+        `60-prep.md Selected step "${selectedStep}" does not match any Plan item ID`,
         'Plan',
       ),
     );

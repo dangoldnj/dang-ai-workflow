@@ -67,7 +67,7 @@ export const checkVerificationPreconditions = (
 
       const latestProgress = [...brief.sections.Progress]
         .reverse()
-        .find(record => record.step === item.text);
+        .find(record => record.step === item.id);
 
       return latestProgress?.status !== 'complete';
     });
@@ -129,7 +129,7 @@ const hasDeferredAcceptanceCriterion = (
     decision =>
       decision.step === '80-verify' &&
       decision.choice.toLowerCase() ===
-        `defer acceptance criterion: ${item.text}`.toLowerCase(),
+        `defer acceptance criterion: ${item.id ?? item.text}`.toLowerCase(),
   );
 };
 

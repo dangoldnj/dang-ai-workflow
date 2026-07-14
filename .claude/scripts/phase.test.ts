@@ -322,8 +322,7 @@ test('selected step output shape is validated', t => {
         decisions: ranDecisionsThrough('60-prep'),
         outputs: {
           ...outputsThrough('60-prep'),
-          '60-prep.md':
-            'Selected step: Implement validator tests\nSelected step: Implement validator tests\n',
+          '60-prep.md': 'Selected step: S1\nSelected step: S1\n',
         },
       },
       { workspacePath: true },

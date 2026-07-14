@@ -35,7 +35,7 @@ test('00-context completion with in-planning state passes', t => {
 
 test('earlier phase reruns preserve current_phase high-water mark', t => {
   const outputs = outputsThrough('80-verify');
-  outputs['60-prep.md'] = 'Selected step: Implement validator tests\n';
+  outputs['60-prep.md'] = 'Selected step: S1\n';
 
   const result = parseAndValidate(
     t,
@@ -83,7 +83,7 @@ test('complete lifecycle fixture passes', t => {
       },
       outputs: {
         ...outputsThrough('80-verify'),
-        '60-prep.md': 'Selected step: Implement validator tests\n',
+        '60-prep.md': 'Selected step: S1\n',
       },
       whatWeBuilt: 'Implemented validator tests.',
     },

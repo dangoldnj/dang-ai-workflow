@@ -29,7 +29,7 @@ test('last-valid snapshot enforces append-only section prefixes', t => {
 
 test('last-valid snapshot allows Progress records to be updated in place', t => {
   const outputs = outputsThrough('70-implement');
-  outputs['60-prep.md'] = 'Selected step: Implement validator tests\n';
+  outputs['60-prep.md'] = 'Selected step: S1\n';
 
   const result = parseAndValidate(
     t,

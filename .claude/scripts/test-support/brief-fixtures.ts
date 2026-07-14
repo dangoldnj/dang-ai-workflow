@@ -10,6 +10,7 @@ import type { ValidationResult } from '../lib/validate/types.ts';
 import { validateBrief } from '../validate-brief.ts';
 
 export type FrontmatterKey =
+  | 'brief_version'
   | 'slug'
   | 'status'
   | 'current_phase'
@@ -17,10 +18,11 @@ export type FrontmatterKey =
   | 'commits_authorized'
   | 'created';
 
-export type FrontmatterValue = string | boolean | null;
+export type FrontmatterValue = string | number | boolean | null;
 export type BriefSectionTitle = (typeof BRIEF_SECTIONS)[number];
 
 export type PlanItemFixture = {
+  id?: string;
   text: string;
   checked?: boolean;
 };
@@ -70,6 +72,7 @@ export type WorkspaceFixture = {
 };
 
 const DEFAULT_FRONTMATTER: Record<FrontmatterKey, FrontmatterValue> = {
+  brief_version: 2,
   slug: 'sample-task',
   status: 'not-started',
   current_phase: null,
@@ -120,10 +123,22 @@ export const parseAndValidate = (
 };
 
 export const buildBrief = (fixture: WorkspaceFixture): string => {
+  const plan = withDefaultIds(fixture.plan ?? [], 'S');
+  const acceptanceCriteria = withDefaultIds(
+    fixture.acceptanceCriteria ?? [],
+    'AC',
+  );
+  const planIdsByText = new Map(plan.map(item => [item.text, item.id]));
   const frontmatter = {
     ...DEFAULT_FRONTMATTER,
     ...fixture.frontmatter,
   };
+  if (
+    typeof frontmatter.current_step === 'string' &&
+    planIdsByText.has(frontmatter.current_step)
+  ) {
+    frontmatter.current_step = planIdsByText.get(frontmatter.current_step)!;
+  }
   const omittedFrontmatter = new Set<FrontmatterKey>(
     fixture.omitFrontmatter ?? [],
   );
@@ -148,10 +163,10 @@ export const buildBrief = (fixture: WorkspaceFixture): string => {
     fixture.approach ?? '',
     '',
     sectionHeading(fixture, 'Plan'),
-    ...formatChecklist(fixture.plan ?? []),
+    ...formatChecklist(plan),
     '',
     sectionHeading(fixture, 'Acceptance Criteria'),
-    ...formatChecklist(fixture.acceptanceCriteria ?? []),
+    ...formatChecklist(acceptanceCriteria),
     '',
     sectionHeading(fixture, 'Verification'),
     ...formatVerification(
@@ -176,7 +191,7 @@ export const buildBrief = (fixture: WorkspaceFixture): string => {
     ...(fixture.decisions ?? []),
     '',
     sectionHeading(fixture, 'Progress'),
-    ...formatProgress(fixture.progress ?? []),
+    ...formatProgress(fixture.progress ?? [], planIdsByText),
     '',
   ];
 
@@ -194,8 +209,18 @@ const formatFrontmatterValue = (value: FrontmatterValue): string => {
   return value;
 };
 
-const formatChecklist = (items: PlanItemFixture[]): string[] =>
-  items.map(item => `- [${item.checked ? 'x' : ' '}] ${item.text}`);
+const withDefaultIds = (
+  items: PlanItemFixture[],
+  prefix: 'S' | 'AC',
+): Required<PlanItemFixture>[] =>
+  items.map((item, index) => ({
+    ...item,
+    id: item.id ?? `${prefix}${index + 1}`,
+    checked: item.checked ?? false,
+  }));
+
+const formatChecklist = (items: Required<PlanItemFixture>[]): string[] =>
+  items.map(item => `- [${item.checked ? 'x' : ' '}] [${item.id}] ${item.text}`);
 
 const formatBullets = (items: string[]): string[] =>
   items.map(item => `- ${item}`);
@@ -210,10 +235,13 @@ export const formatVerification = (verification: VerificationFixture): string[] 
   ...(verification.notes ?? ['Fixture verification.']).map(note => `- ${note}`),
 ];
 
-const formatProgress = (records: ProgressFixture[]): string[] =>
+const formatProgress = (
+  records: ProgressFixture[],
+  planIdsByText: Map<string, string>,
+): string[] =>
   records.flatMap((record, index) => [
     ...(index === 0 ? [] : ['']),
-    `Step: ${record.step}`,
+    `Step: ${planIdsByText.get(record.step) ?? record.step}`,
     `Status: ${record.status ?? 'complete'}`,
     'Automated checks:',
     `- ${record.automatedChecks ?? 'passed'}`,
@@ -241,4 +269,3 @@ export const outputsThrough = (phase: Phase): Record<string, string> => {
   }
   return outputs;
 };
-

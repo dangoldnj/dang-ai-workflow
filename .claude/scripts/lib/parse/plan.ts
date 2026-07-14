@@ -10,7 +10,7 @@ export const parsePlan = (
   const errors: ParseIssue[] = [];
   for (const [index, line] of section.body.split('\n').entries()) {
     if (line.trim() === '') continue;
-    const m = line.match(/^-\s+\[([ xX])\]\s+(.+)$/);
+    const m = line.match(/^-\s+\[([ xX])\]\s+(?:(\[[^\]]+\])\s+)?(.+)$/);
     if (!m) {
       errors.push({
         code: 'plan-line-unparseable',
@@ -21,7 +21,8 @@ export const parsePlan = (
     }
     value.push({
       checked: m[1].toLowerCase() === 'x',
-      text: m[2].trim(),
+      ...(m[2] !== undefined ? { id: m[2].slice(1, -1).trim() } : {}),
+      text: m[3].trim(),
       raw: m[0],
     });
   }

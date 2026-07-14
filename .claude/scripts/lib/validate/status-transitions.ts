@@ -139,7 +139,7 @@ export const checkStatusTransitions = (
 
   if (fm.current_step !== null) {
     const planItem = brief.sections.Plan.find(
-      item => item.text === fm.current_step,
+      item => item.id === fm.current_step,
     );
     const latestProgress = [...brief.sections.Progress]
       .reverse()
@@ -149,7 +149,7 @@ export const checkStatusTransitions = (
       v.push(
         validationError(
           'current-step-not-in-plan',
-          `current_step "${fm.current_step}" does not match any Plan item`,
+          `current_step "${fm.current_step}" does not match any Plan item ID`,
           'Plan',
         ),
       );

@@ -1,11 +1,32 @@
-import type { ParsedBrief } from '../types.ts';
+import {
+  ACCEPTANCE_CRITERION_ID_PATTERN,
+  STEP_ID_PATTERN,
+} from '../constants.ts';
+import type { ParsedBrief, PlanItem } from '../types.ts';
 import { isPhaseAtOrAfter, validationError } from './common.ts';
 import type { ValidationViolation } from './types.ts';
 
 export const checkPlanProgressConsistency = (
   brief: ParsedBrief,
 ): ValidationViolation[] => {
-  const v: ValidationViolation[] = [];
+  const v: ValidationViolation[] = [
+    ...checkPlanItemIds(
+      brief.sections.Plan,
+      'Plan',
+      'plan-item-id-missing',
+      'plan-item-id-invalid',
+      'plan-duplicate-step-id',
+      STEP_ID_PATTERN,
+    ),
+    ...checkPlanItemIds(
+      brief.sections['Acceptance Criteria'],
+      'Acceptance Criteria',
+      'acceptance-criteria-id-missing',
+      'acceptance-criteria-id-invalid',
+      'acceptance-criteria-duplicate-id',
+      ACCEPTANCE_CRITERION_ID_PATTERN,
+    ),
+  ];
 
   if (
     brief.sections.Plan.length === 0 &&
@@ -45,14 +66,16 @@ export const checkPlanProgressConsistency = (
     }
   }
 
-  // Every Progress record's step name should appear as a Plan item
-  const planTexts = new Set(brief.sections.Plan.map(p => p.text));
+  // Every Progress record's step should reference a Plan item ID.
+  const planIds = new Set(
+    brief.sections.Plan.map(p => p.id).filter((id): id is string => !!id),
+  );
   for (const record of brief.sections.Progress) {
-    if (!planTexts.has(record.step)) {
+    if (!planIds.has(record.step)) {
       v.push(
         validationError(
           'progress-step-not-in-plan',
-          `Progress record for step "${record.step}" does not match any Plan item`,
+          `Progress record for step "${record.step}" does not match any Plan item ID`,
           'Progress',
         ),
       );
@@ -66,11 +89,15 @@ export const checkPlanProgressConsistency = (
     ),
   );
   for (const item of brief.sections.Plan) {
-    if (item.checked && !completedSteps.has(item.text)) {
+    if (item.id === undefined) {
+      continue;
+    }
+
+    if (item.checked && !completedSteps.has(item.id)) {
       v.push(
         validationError(
           'plan-checked-without-progress',
-          `Plan item "${item.text}" is checked but has no complete Progress record`,
+          `Plan item "${item.id}" is checked but has no complete Progress record`,
           'Plan',
         ),
       );
@@ -78,13 +105,64 @@ export const checkPlanProgressConsistency = (
 
     if (
       !item.checked &&
-      latestProgressByStep.get(item.text)?.status === 'complete'
+      latestProgressByStep.get(item.id)?.status === 'complete'
     ) {
       v.push(
         validationError(
           'plan-unchecked-with-complete-progress',
-          `Plan item "${item.text}" is unchecked but latest Progress status is complete`,
+          `Plan item "${item.id}" is unchecked but latest Progress status is complete`,
           'Plan',
+        ),
+      );
+    }
+  }
+
+  return v;
+};
+
+const checkPlanItemIds = (
+  items: PlanItem[],
+  section: 'Plan' | 'Acceptance Criteria',
+  missingInvariant: string,
+  invalidInvariant: string,
+  duplicateInvariant: string,
+  pattern: RegExp,
+): ValidationViolation[] => {
+  const v: ValidationViolation[] = [];
+  const counts = new Map<string, number>();
+
+  for (const item of items) {
+    if (item.id === undefined || item.id.length === 0) {
+      v.push(
+        validationError(
+          missingInvariant,
+          `${section} item "${item.text}" is missing a stable ID`,
+          section,
+        ),
+      );
+      continue;
+    }
+
+    if (!pattern.test(item.id)) {
+      v.push(
+        validationError(
+          invalidInvariant,
+          `${section} item ID "${item.id}" has invalid format`,
+          section,
+        ),
+      );
+    }
+
+    counts.set(item.id, (counts.get(item.id) ?? 0) + 1);
+  }
+
+  for (const [id, count] of counts) {
+    if (count > 1) {
+      v.push(
+        validationError(
+          duplicateInvariant,
+          `${section} has ${count} items with ID "${id}"; expected unique IDs`,
+          section,
         ),
       );
     }

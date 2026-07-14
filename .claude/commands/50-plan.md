@@ -17,6 +17,8 @@ formats/phase.md
 
 ## Do
 - Map slices to implementation steps in execution order
+- Assign every Plan item a stable ID in the checkbox text, e.g. `- [ ] [S1] Step title`
+- Use grouped Plan IDs when helpful for larger plans, e.g. `A1`, `A2`, `B1`; IDs must be unique and end with a number
 - Add verification per step
 - List likely files and commands
 - Note any historical files consulted

@@ -31,6 +31,7 @@ node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug>
 node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug> <next-phase>
 node .claude/scripts/validate-brief.ts --format json thoughts/shared/work/<slug>
 node .claude/scripts/validate-brief.ts --next thoughts/shared/work/<slug>
+node .claude/scripts/migrate-brief.ts --write thoughts/shared/work/<slug>
 ```
 
 The validator requires Node `>=22.18.0`.
