@@ -1,5 +1,5 @@
-import { validationError, validationWarning } from './common.ts';
 import type { ParsedBrief } from '../types.ts';
+import { isPhaseAtOrAfter, validationError } from './common.ts';
 import type { ValidationViolation } from './types.ts';
 
 export const checkPlanProgressConsistency = (
@@ -7,12 +7,30 @@ export const checkPlanProgressConsistency = (
 ): ValidationViolation[] => {
   const v: ValidationViolation[] = [];
 
+  if (
+    brief.sections.Plan.length === 0 &&
+    isPhaseAtOrAfter(brief.frontmatter.current_phase, '50-plan')
+  ) {
+    v.push(
+      validationError(
+        'plan-empty-after-plan-phase',
+        'current_phase is 50-plan or later but Plan has no items',
+        'Plan',
+      ),
+    );
+  }
+
   const progressCountsByStep = new Map<string, number>();
+  const latestProgressByStep = new Map<
+    string,
+    (typeof brief.sections.Progress)[number]
+  >();
   for (const record of brief.sections.Progress) {
     progressCountsByStep.set(
       record.step,
       (progressCountsByStep.get(record.step) ?? 0) + 1,
     );
+    latestProgressByStep.set(record.step, record);
   }
 
   for (const [step, count] of progressCountsByStep) {
@@ -53,6 +71,19 @@ export const checkPlanProgressConsistency = (
         validationError(
           'plan-checked-without-progress',
           `Plan item "${item.text}" is checked but has no complete Progress record`,
+          'Plan',
+        ),
+      );
+    }
+
+    if (
+      !item.checked &&
+      latestProgressByStep.get(item.text)?.status === 'complete'
+    ) {
+      v.push(
+        validationError(
+          'plan-unchecked-with-complete-progress',
+          `Plan item "${item.text}" is unchecked but latest Progress status is complete`,
           'Plan',
         ),
       );

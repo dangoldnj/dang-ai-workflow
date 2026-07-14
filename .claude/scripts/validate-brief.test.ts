@@ -412,6 +412,9 @@ test('last-valid snapshot allows Progress records to be updated in place', t => 
         current_step: 'Implement validator tests',
       },
       plan: [{ text: 'Implement validator tests' }],
+      acceptanceCriteria: [
+        { text: 'Validator behavior is covered', checked: true },
+      ],
       decisions: ranDecisionsThrough('70-implement'),
       progress: [
         {
@@ -457,6 +460,109 @@ test('Progress allows only one record per step', t => {
       ],
     }),
     'progress-duplicate-step',
+  );
+});
+
+test('Progress records must be internally consistent', t => {
+  const plan = [
+    { text: 'Complete with manual needed' },
+    { text: 'Complete with failed checks' },
+    { text: 'Checks passed mismatch' },
+  ];
+  const result = parseAndValidate(t, {
+    plan,
+    progress: [
+      {
+        step: 'Complete with manual needed',
+        status: 'complete',
+        automatedChecks: 'passed',
+        manualVerification: 'needed',
+      },
+      {
+        step: 'Complete with failed checks',
+        status: 'complete',
+        automatedChecks: 'failed',
+        manualVerification: 'confirmed',
+      },
+      {
+        step: 'Checks passed mismatch',
+        status: 'automated-checks-passed',
+        automatedChecks: 'not-run',
+      },
+    ],
+  });
+
+  assertHasInvariant(result, 'progress-complete-with-manual-needed');
+  assertHasInvariant(result, 'progress-complete-with-failed-checks');
+  assertHasInvariant(result, 'progress-checks-passed-mismatch');
+});
+
+test('complete Progress records require checked Plan items', t => {
+  assertHasInvariant(
+    parseAndValidate(t, {
+      plan: [{ text: 'Implement validator tests' }],
+      progress: [{ step: 'Implement validator tests' }],
+    }),
+    'plan-unchecked-with-complete-progress',
+  );
+});
+
+test('Plan must be populated once planning has run', t => {
+  assertHasInvariant(
+    parseAndValidate(t, {
+      frontmatter: {
+        status: 'in-planning',
+        current_phase: '50-plan',
+      },
+      decisions: ranDecisionsThrough('50-plan'),
+    }),
+    'plan-empty-after-plan-phase',
+  );
+});
+
+test('Goal is required', t => {
+  assertHasInvariant(
+    parseAndValidate(t, {
+      goal: '  ',
+    }),
+    'goal-missing',
+  );
+});
+
+test('Acceptance Criteria should be populated once planning has run', t => {
+  assertHasInvariant(
+    parseAndValidate(t, {
+      frontmatter: {
+        status: 'in-planning',
+        current_phase: '50-plan',
+      },
+      plan: [{ text: 'Implement validator tests' }],
+      decisions: ranDecisionsThrough('50-plan'),
+    }),
+    'acceptance-criteria-empty-after-plan-phase',
+  );
+});
+
+test('Constraints warn when tagged with a future phase', t => {
+  assertHasInvariant(
+    parseAndValidate(t, {
+      frontmatter: {
+        status: 'in-planning',
+        current_phase: '30-discuss',
+      },
+      decisions: ranDecisionsThrough('30-discuss'),
+      constraints: ['- [80-verify] Run final manual smoke test'],
+    }),
+    'constraint-future-phase-tag',
+  );
+});
+
+test('Constraint tags must be known phases or init', t => {
+  assertHasInvariant(
+    parseAndValidate(t, {
+      constraints: ['- [later] Invalid phase tag'],
+    }),
+    'constraint-invalid-tag',
   );
 });
 
@@ -625,6 +731,9 @@ test('earlier phase reruns preserve current_phase high-water mark', t => {
         current_phase: '80-verify',
       },
       plan: [{ text: 'Implement validator tests', checked: true }],
+      acceptanceCriteria: [
+        { text: 'Validator behavior is covered', checked: true },
+      ],
       decisions: [
         ...ranDecisionsThrough('80-verify'),
         '- [60-prep] [ran] [Reworked after verification failed]',

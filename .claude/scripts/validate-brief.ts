@@ -6,12 +6,14 @@ import { LAST_VALID_SNAPSHOT, PHASES } from './lib/constants.ts';
 import type { ParsedBrief, Phase } from './lib/types.ts';
 import { checkAppendOnlySnapshot } from './lib/validate/append-only.ts';
 import { checkConstraintsTagging } from './lib/validate/constraints.ts';
+import { checkRequiredContent } from './lib/validate/content.ts';
 import { checkDecisionsShape } from './lib/validate/decisions.ts';
 import { checkFrontmatterShape } from './lib/validate/frontmatter.ts';
 import { checkParseErrors } from './lib/validate/parse-errors.ts';
 import { checkPhaseAccounting } from './lib/validate/phase-accounting.ts';
 import { checkPhasePreconditions } from './lib/validate/phase-preconditions.ts';
 import { checkPlanProgressConsistency } from './lib/validate/plan.ts';
+import { checkProgressConsistency } from './lib/validate/progress.ts';
 import { checkSelectedStep } from './lib/validate/selected-step.ts';
 import { checkSectionShape } from './lib/validate/sections.ts';
 import { checkStatusTransitions } from './lib/validate/status-transitions.ts';
@@ -39,7 +41,9 @@ export const validateBrief = (
     ...checkFrontmatterShape(brief),
     ...checkSectionShape(brief),
     ...checkAppendOnlySnapshot(brief, options.workspacePath),
+    ...checkRequiredContent(brief),
     ...checkStatusTransitions(brief),
+    ...checkProgressConsistency(brief),
     ...checkPlanProgressConsistency(brief),
     ...checkConstraintsTagging(brief),
     ...checkDecisionsShape(brief),

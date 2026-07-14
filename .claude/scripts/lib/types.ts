@@ -23,7 +23,13 @@ export type BriefFrontmatter = {
   created: string;
 };
 
-export type ConstraintEntry = { phase: Phase; text: string; raw: string };
+export type ConstraintPhase = Phase | 'init';
+
+export type ConstraintEntry = {
+  phase: ConstraintPhase;
+  text: string;
+  raw: string;
+};
 
 export type DecisionEntry = {
   step: string;
