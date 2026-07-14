@@ -10,8 +10,18 @@ declare module 'node:assert/strict' {
 }
 
 declare module 'node:fs' {
+  export type Dirent = {
+    name: string;
+    isDirectory: () => boolean;
+    isFile: () => boolean;
+  };
+
   export const existsSync: (path: string) => boolean;
   export const mkdtempSync: (prefix: string) => string;
+  export const readdirSync: (
+    path: string,
+    options: { withFileTypes: true },
+  ) => Dirent[];
   export const readFileSync: (path: string, encoding: string) => string;
   export const copyFileSync: (src: string, dest: string, mode?: string) => void;
   export const rmSync: (
@@ -45,6 +55,7 @@ declare module 'node:test' {
 }
 
 declare module 'node:url' {
+  export const fileURLToPath: (url: string | URL) => string;
   export const pathToFileURL: (path: string) => { href: string };
 }
 
