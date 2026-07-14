@@ -20,7 +20,7 @@ Write when the phase runs:
   Follow format guidelines in: .claude/commands/formats/brief.md
 - <workspace>/brief.md Decisions entry: `[phase] [ran] [phase completed]`
 - <workspace>/brief.md frontmatter `status` (if `not-started`, set to `in-planning`)
-- <workspace>/brief.md frontmatter `current_phase` (set to this phase name)
+- <workspace>/brief.md frontmatter `current_phase` (set to this phase name only if it is later than the current value)
 
 After all writes, validate brief.md. Do not consider the phase complete until validation passes.
 
@@ -66,7 +66,7 @@ If the phase skips, it must:
 - Skip writing any phase specific document
 - Record the decision in brief.md Decisions as `[phase] [skipped] [reason]`
 - If frontmatter `status` is `not-started`, set it to `in-planning`
-- Set frontmatter `current_phase` to its own name (skipped phases still count as the last completed phase)
+- Set frontmatter `current_phase` to its own name only if it is later than the current value
 - Output the next command to run
 
 The skip check runs after preconditions and initial validation. A phase cannot skip an invalid brief; it must report the validation errors instead.

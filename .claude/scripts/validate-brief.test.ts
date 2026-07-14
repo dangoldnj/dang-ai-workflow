@@ -413,6 +413,32 @@ test('skip contract is enforced through Decisions', t => {
   );
 });
 
+test('earlier phase reruns preserve current_phase high-water mark', t => {
+  const outputs = outputsThrough('80-verify');
+  outputs['60-prep.md'] = 'Selected step: Implement validator tests\n';
+
+  const result = parseAndValidate(
+    t,
+    {
+      frontmatter: {
+        status: 'in-progress',
+        current_phase: '80-verify',
+      },
+      plan: [{ text: 'Implement validator tests', checked: true }],
+      decisions: [
+        ...ranDecisionsThrough('80-verify'),
+        '- [60-prep] [ran] [Reworked after verification failed]',
+      ],
+      progress: [{ step: 'Implement validator tests' }],
+      outputs,
+    },
+    { workspacePath: true },
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.violations, []);
+});
+
 test('60-prep selected step must match the Plan and current_step', t => {
   const outputs = outputsThrough('60-prep');
   outputs['60-prep.md'] = 'Selected step: Implement a different step\n';

@@ -23,7 +23,7 @@ Every brief.md begins with a YAML frontmatter block. This is the machine-readabl
 Fields:
 - slug: kebab-case identifier, set at init
 - status: not-started / in-planning / in-progress / blocked / complete / abandoned
-- current_phase: null at init, last completed or skipped phase otherwise
+- current_phase: null at init, highest completed or skipped phase otherwise. Reruns of earlier phases must not move it backward.
 - current_step: null until 60-prep selects an implementation step, then the selected step name; cleared when that step reaches complete
 - commits_authorized: boolean, set at init by run-default
 - created: ISO date, set at init
@@ -57,6 +57,7 @@ Transitions:
 - any status to abandoned: manually set by the user upon abandonment
 
 `not-started` is init-only. Once any phase runs or skips, `status` must be `in-planning` or later.
+When a phase runs or skips, set `current_phase` to that phase only if it is later than the current value.
 60-prep sets `current_step` to the selected Plan step without changing `status`.
 70-implement sets `status` to in-progress on first run and clears `current_step` when Progress for that step reaches complete.
 If work blocks, leave `current_step` set so the blocked step remains visible.
