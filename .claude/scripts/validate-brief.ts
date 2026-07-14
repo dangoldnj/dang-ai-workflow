@@ -1,3 +1,5 @@
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { parseBrief } from './lib/parse-brief.ts';
 import { PHASES } from './lib/constants.ts';
 import type { ParsedBrief, Phase } from './lib/types.ts';
@@ -61,14 +63,13 @@ const main = (): void => {
   const workspace = process.argv[2];
   const beforePhase = process.argv[3];
   if (!workspace || process.argv[4] !== undefined) {
-    console.error('Usage: node validate-brief.ts <workspace-path> [before-phase]');
+    console.error(
+      'Usage: node validate-brief.ts <workspace-path> [before-phase]',
+    );
     process.exit(2);
   }
 
-  if (
-    beforePhase !== undefined &&
-    !PHASES.includes(beforePhase as Phase)
-  ) {
+  if (beforePhase !== undefined && !PHASES.includes(beforePhase as Phase)) {
     console.error(
       `Invalid before-phase "${beforePhase}". Expected one of: ${PHASES.join(', ')}`,
     );
@@ -106,4 +107,14 @@ const main = (): void => {
   process.exit(result.ok ? 0 : 1);
 };
 
-main();
+const isCliEntrypoint = (): boolean => {
+  const entrypoint = process.argv[1];
+  return (
+    entrypoint !== undefined &&
+    import.meta.url === pathToFileURL(resolve(entrypoint)).href
+  );
+};
+
+if (isCliEntrypoint()) {
+  main();
+}
