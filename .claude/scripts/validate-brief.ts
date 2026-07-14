@@ -11,6 +11,7 @@ import { checkPhaseAccounting } from './lib/validate/phase-accounting.ts';
 import { checkPhasePreconditions } from './lib/validate/phase-preconditions.ts';
 import { checkPlanProgressConsistency } from './lib/validate/plan.ts';
 import { checkSelectedStep } from './lib/validate/selected-step.ts';
+import { checkSectionShape } from './lib/validate/sections.ts';
 import { checkStatusTransitions } from './lib/validate/status-transitions.ts';
 import { checkTerminalState } from './lib/validate/terminal-state.ts';
 import { checkUnresolvedUnknowns } from './lib/validate/unknowns.ts';
@@ -34,6 +35,7 @@ export const validateBrief = (
   const violations: ValidationViolation[] = [
     ...checkParseErrors(brief),
     ...checkFrontmatterShape(brief),
+    ...checkSectionShape(brief),
     ...checkStatusTransitions(brief),
     ...checkPlanProgressConsistency(brief),
     ...checkConstraintsTagging(brief),

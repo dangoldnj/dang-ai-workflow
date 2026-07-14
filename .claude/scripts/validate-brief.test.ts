@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test, { type TestContext } from 'node:test';
-import { PHASES } from './lib/constants.ts';
+import { BRIEF_SECTIONS, PHASES } from './lib/constants.ts';
 import { parseBrief } from './lib/parse-brief.ts';
 import type { Phase } from './lib/types.ts';
 import { PHASE_OUTPUT_FILES } from './lib/validate/phase-accounting.ts';
@@ -19,6 +19,7 @@ type FrontmatterKey =
   | 'created';
 
 type FrontmatterValue = string | boolean | null;
+type BriefSectionTitle = (typeof BRIEF_SECTIONS)[number];
 
 type PlanItemFixture = {
   text: string;
@@ -64,6 +65,7 @@ type WorkspaceFixture = {
   whatWeBuilt?: string;
   includeTask?: boolean;
   lineEnding?: '\n' | '\r\n';
+  sectionTitleOverrides?: Partial<Record<BriefSectionTitle, string>>;
 };
 
 const DEFAULT_FRONTMATTER: Record<FrontmatterKey, FrontmatterValue> = {
@@ -127,22 +129,22 @@ const buildBrief = (fixture: WorkspaceFixture): string => {
     ),
     '---',
     '',
-    '## What We Built',
+    sectionHeading(fixture, 'What We Built'),
     fixture.whatWeBuilt ?? '',
     '',
-    '## Goal',
+    sectionHeading(fixture, 'Goal'),
     fixture.goal ?? 'Validate workflow state.',
     '',
-    '## Approach',
+    sectionHeading(fixture, 'Approach'),
     fixture.approach ?? '',
     '',
-    '## Plan',
+    sectionHeading(fixture, 'Plan'),
     ...formatChecklist(fixture.plan ?? []),
     '',
-    '## Acceptance Criteria',
+    sectionHeading(fixture, 'Acceptance Criteria'),
     ...formatChecklist(fixture.acceptanceCriteria ?? []),
     '',
-    '## Verification',
+    sectionHeading(fixture, 'Verification'),
     ...formatVerification(
       fixture.verification ?? {
         status: 'fail',
@@ -152,25 +154,30 @@ const buildBrief = (fixture: WorkspaceFixture): string => {
       },
     ),
     '',
-    '## Conflicts',
+    sectionHeading(fixture, 'Conflicts'),
     ...formatBullets(fixture.conflicts ?? []),
     '',
-    '## Unknowns',
+    sectionHeading(fixture, 'Unknowns'),
     ...formatBullets(fixture.unknowns ?? []),
     '',
-    '## Constraints',
+    sectionHeading(fixture, 'Constraints'),
     ...(fixture.constraints ?? []),
     '',
-    '## Decisions',
+    sectionHeading(fixture, 'Decisions'),
     ...(fixture.decisions ?? []),
     '',
-    '## Progress',
+    sectionHeading(fixture, 'Progress'),
     ...formatProgress(fixture.progress ?? []),
     '',
   ];
 
   return lines.join(fixture.lineEnding ?? '\n');
 };
+
+const sectionHeading = (
+  fixture: WorkspaceFixture,
+  section: BriefSectionTitle,
+): string => `## ${fixture.sectionTitleOverrides?.[section] ?? section}`;
 
 const formatFrontmatterValue = (value: FrontmatterValue): string => {
   if (value === null) return 'null';
@@ -325,6 +332,38 @@ test('frontmatter accepts only intended keys and value formats', t => {
       },
     }),
     'frontmatter-slug',
+  );
+});
+
+test('section headings must match the canonical brief shape', t => {
+  const typoResult = parseAndValidate(t, {
+    sectionTitleOverrides: {
+      Plan: 'Plans',
+    },
+  });
+
+  assertHasInvariant(typoResult, 'section-missing');
+  assert(
+    typoResult.violations.some(
+      v => v.invariant === 'section-missing' && v.message.includes('## Plan'),
+    ),
+    'Expected missing canonical Plan section',
+  );
+  assertHasInvariant(typoResult, 'section-unknown');
+  assert(
+    typoResult.violations.some(
+      v => v.invariant === 'section-unknown' && v.message.includes('## Plans'),
+    ),
+    'Expected unknown typo section Plans',
+  );
+
+  assertHasInvariant(
+    parseAndValidate(t, {
+      sectionTitleOverrides: {
+        Progress: 'Progres',
+      },
+    }),
+    'section-missing',
   );
 });
 
