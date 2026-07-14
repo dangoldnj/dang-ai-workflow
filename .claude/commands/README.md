@@ -24,6 +24,25 @@ Phases 00, 10, and 20 are self-gating and may skip when their work is not needed
 
 Run after every phase write. Errors block the phase from advancing.
 
+Common validator commands:
+
+```bash
+node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug>
+node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug> <next-phase>
+node .claude/scripts/validate-brief.ts --format json thoughts/shared/work/<slug>
+node .claude/scripts/validate-brief.ts --next thoughts/shared/work/<slug>
+```
+
+The validator requires Node `>=22.18.0`.
+
+Exit codes:
+
+- `0`: validation passed; warnings may be present
+- `1`: validation found one or more errors
+- `2`: usage error, parse failure, or validator runtime failure
+
+For hook setup, JSON output, and invariant catalog details, see `.claude/scripts/README.md`.
+
 ## Shared artifacts
 
 When a workflow closes successfully, 90-close promotes durable artifacts to shared directories:

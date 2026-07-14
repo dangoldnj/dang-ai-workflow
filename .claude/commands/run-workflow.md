@@ -21,11 +21,12 @@ Do:
   - Acceptance Criteria: if known, otherwise empty
   - Verification: write the initial non-passing Verification record from .claude/commands/formats/brief.md so the brief passes validation before 80-verify replaces it.
   - Constraints: derived from task.md, if any are stated. These describe constraints on the work itself, not on the workflow execution. Tag each entry with [init].
-- Validate <workspace>/brief.md with: node .claude/scripts/validate-brief.ts <workspace>
-- If validation fails, fix the initialized brief before stopping
+- Validate and route <workspace>/brief.md with: node .claude/scripts/validate-brief.ts --next <workspace>
+- If validation reports errors, fix the initialized brief before stopping
+- If the validator does not return NEXT 00-context, report the result and stop
 - Stop after initialization
 
 Output:
 - Slug
 - Workspace
-- Next command to run: 00-context
+- Next command to run: validator-reported NEXT phase
