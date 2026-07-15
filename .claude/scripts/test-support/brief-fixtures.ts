@@ -217,7 +217,7 @@ const sectionHeading = (
 const formatFrontmatterValue = (value: FrontmatterValue): string => {
   if (value === null) return 'null';
   if (typeof value === 'boolean') return value ? 'true' : 'false';
-  return value;
+  return String(value);
 };
 
 const withDefaultIds = (
