@@ -18,7 +18,7 @@ Write when the phase runs:
 - <workspace>/<phase-output-file>.md
 - <workspace>/brief.md (sections declared by the phase)
   Follow format guidelines in: .claude/commands/formats/brief.md
-- <workspace>/brief.md Decisions entry: `[phase] [ran: S7] [phase completed]`
+- <workspace>/brief.md Decisions entry: `[phase] [ran] [phase completed]` (or `[ran: S7]` if it ran Step 7, for example)
 - <workspace>/brief.md frontmatter `status` (if `not-started`, set to `in-planning`)
 - <workspace>/brief.md frontmatter `current_phase` (set to this phase name only if it is later than the current value)
 
