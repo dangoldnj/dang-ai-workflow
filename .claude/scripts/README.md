@@ -61,7 +61,7 @@ If validation has errors, `--next` returns a stop action with reason `validation
 
 ## Hook
 
-Claude Code can run the validator after brief writes with a `PostToolUse` hook. Keep this in a shared settings example or project documentation, not `settings.local.json`.
+Claude Code can run the validator after workflow workspace writes with a `PostToolUse` hook. Keep this in a shared settings example or project documentation, not `settings.local.json`.
 
 ```json
 {
@@ -81,7 +81,7 @@ Claude Code can run the validator after brief writes with a `PostToolUse` hook. 
 }
 ```
 
-The hook helper reads Claude Code's hook payload from stdin and ignores writes outside `thoughts/shared/work/*/brief.md`.
+The hook helper reads Claude Code's hook payload from stdin and ignores writes outside `thoughts/shared/work/*/`. If validation fails, it writes the validator JSON to stderr and exits 2 so Claude Code can feed the violations back to the agent.
 
 ## Invariant Catalog
 

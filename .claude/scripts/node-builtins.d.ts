@@ -10,6 +10,20 @@ declare module 'node:assert/strict' {
   export default assert;
 }
 
+declare module 'node:child_process' {
+  export type SpawnSyncReturns = {
+    status: number | null;
+    stdout: string;
+    stderr: string;
+  };
+
+  export const spawnSync: (
+    command: string,
+    args?: string[],
+    options?: { cwd?: string; input?: string; encoding?: string },
+  ) => SpawnSyncReturns;
+}
+
 declare module 'node:fs' {
   export type Dirent = {
     name: string;
@@ -18,6 +32,10 @@ declare module 'node:fs' {
   };
 
   export const existsSync: (path: string) => boolean;
+  export const mkdirSync: (
+    path: string,
+    options?: { recursive?: boolean },
+  ) => void;
   export const mkdtempSync: (prefix: string) => string;
   export const readdirSync: (
     path: string,
@@ -41,6 +59,7 @@ declare module 'node:os' {
 }
 
 declare module 'node:path' {
+  export const dirname: (path: string) => string;
   export const join: (...paths: string[]) => string;
   export const resolve: (...paths: string[]) => string;
 }
@@ -67,5 +86,6 @@ declare const console: {
 
 declare const process: {
   argv: string[];
+  execPath: string;
   exit: (code?: number) => never;
 };
