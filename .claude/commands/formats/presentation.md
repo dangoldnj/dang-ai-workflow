@@ -10,138 +10,63 @@ This guidance applies to:
 - Verification reports produced by `.claude/commands/80-verify.md`
 - Design documents stored in `thoughts/shared/design/`
 
-### Required callouts
+### Core rules
 
-Every applicable document must include each of these callouts (or an explicit waiver). A waiver uses the Waived Callout pattern in the styling reference; it states that the callout was considered and why it does not apply. Absence is a defect; explicit waiver is not.
+- Use compact inline HTML/CSS callouts by default.
+- Keep documents fully actionable as plain markdown even if styling is ignored.
+- Prefer short bullets to long paragraphs.
+- Keep file/path/line references concrete and visible.
+- Do not use styling to hide unresolved questions, weak evidence, or missing success criteria.
+- Do not convert research findings into recommendations unless the user asked for recommendations.
 
-- **At a Glance** required at the top of every document. One to two sentences. Never waived.
-- **In / Out of Scope** required for implementation plans and design documents. Optional but encouraged elsewhere when scope is non-obvious.
-- **Primary Risk** required for plans, approach decisions, and verification reports. Waive with "Primary risk: none material" plus rationale if no significant risk exists.
-- **Guardrail** required for design documents and implementation plans wherever a non-obvious failure mode exists. Waive with "Guardrail: none identified" plus a sentence on what was considered.
-- **Open Question** required wherever unresolved decisions remain. Waive with "Open question: none" when none remain. Final implementation plans may not waive this with open questions outstanding; they must be resolved before the plan is finalized.
+### Callout requirements
 
-The waiver pattern matches the acceptance criteria deferral pattern: the document records that the question was considered, not just that it was omitted.
+Every applicable document must include the required callouts below. A required callout may be active or explicitly waived. A waiver records that the question was considered and why it does not apply; absence is a defect. At a Glance is always active and never waived.
 
-### Document-specific emphasis
-
-Use the same callout vocabulary across document types. Emphasize different content.
-
-#### Implementation Plans
-
-Lead with At a Glance. Use the In/Out of Scope table to prevent creep. Risk callout near the end. Guardrails where migration concerns or implementation traps exist. Open questions must be resolved before finalization. Verification steps belong in the plan body, not in callouts.
-
-#### Codebase Research Memos
-
-Lead with At a Glance summarizing the research question and the headline finding. Use Open Question callouts for investigation gaps (framed as "what evidence is missing," not "what to build"). Do not use Risk or Guardrail callouts unless the user explicitly asked for recommendations. Research memos document current state, not next actions.
-
-#### Approach Decisions
-
-Lead with At a Glance stating the chosen approach and confidence level (high / medium / low). Use Risk callouts for the option risks considered. Use Open Question callouts for decisions deferred to the plan phase.
-
-#### Verification Reports
-
-Lead with pass or fail immediately, in the At a Glance card. On fail, the Risk callout is the single most critical issue. Guardrail callouts mark gaps between plan and implementation that block progression. Recommended next action is in the body.
-
-#### Design Documents
-
-Lead with At a Glance summarizing what the document covers and what it defers. Use the In/Out of Scope table to separate in-scope components from explicitly deferred ones. Guardrail callouts mark implementation traps that are easy to get wrong (e.g. "client state must not drive lock behavior"). Open Question callouts mark unresolved decisions that affect implementation. Do not use plan language (steps, commands, verification) in design documents.
-
-### Default visual structure
-
-Most final documents include:
-
-1. At a Glance card at the top
-2. In/Out of Scope where scope is non-trivial
-3. The required callouts above, applied to the document type
-4. Short bullets in place of long paragraphs wherever possible
-5. Clear section breaks; no walls of prose
-
-### Constraints
-
-Presentation styling must never:
-
-- replace technical specificity
-- hide unresolved questions
-- weaken file/path/line references
-- substitute for concrete success criteria
-- convert research findings into recommendations
-- make the document harder to copy, edit, or diff
-
-The document must remain fully actionable as plain markdown even if inline styling is ignored.
-
-### Styling reference
-
-Inline HTML/CSS is supported. Use translucent dark-theme-friendly styling. Each callout has a distinct hue so a reader can identify the callout type at a glance. Waived callouts use a muted neutral hue and a compact single-line shape; an active callout and its waived form must never look the same.
-
-Color assignments:
-
-| Callout | Hue | RGB |
+| Document type | Required callouts | Emphasis |
 |---|---|---|
-| At a Glance | slate | `148, 163, 184` |
-| In Scope | cyan | `34, 211, 238` |
-| Out of Scope | orange | `251, 146, 60` |
-| Guardrail | amber | `251, 191, 36` |
-| Risk | red | `248, 113, 113` |
-| Open Question | violet | `167, 139, 250` |
-| Waived (any) | muted slate | `100, 116, 139` |
+| Implementation plan | At a Glance; In / Out of Scope; Primary Risk; Guardrail active or waived; Open Question waiver | Verification steps belong in the plan body, not callouts. Final plans may not have unresolved open questions. |
+| Codebase research memo | At a Glance; Open Question active or waived | Document current state, evidence, and inferences. Do not use Risk or Guardrail unless the user asked for recommendations. |
+| Approach decision | At a Glance; Primary Risk; Open Question active or waived | State the chosen approach and confidence level: high, medium, or low. |
+| Verification report | At a Glance; Primary Risk active or waived; Guardrail for blocking plan/implementation gaps | Lead with pass or fail. On fail, the risk callout is the single most critical issue. |
+| Design document | At a Glance; In / Out of Scope; Guardrail active or waived; Open Question active or waived | Separate in-scope components from deferrals. Do not use implementation-plan language. |
 
-Opacity conventions (apply to whichever hue):
+Waiver labels should be specific: `Primary risk: none material.`, `Guardrail: none identified.`, or `Open question: none.`
 
-- Backgrounds: `rgba(..., 0.08-0.12)`
-- Borders: `rgba(..., 0.24-0.30)`
-- Accent borders: `rgba(..., 0.50-0.60)`
+### Style tokens
 
-#### At A Glance Card
+Use the active callout template with the label and colors from the options table. Replace all placeholders; do not emit bracketed placeholders in final documents.
 
 ```html
-<div style="border: 1px solid rgba(148, 163, 184, 0.28); background: rgba(148, 163, 184, 0.10); padding: 16px; border-radius: 10px; margin: 16px 0;">
-  <strong style="font-size: 16px;">At a Glance</strong>
-  <div style="margin-top: 8px;">
-    [1-2 sentence summary]
-  </div>
-</div>
+<div style="border-left: 4px solid [accent]; background: [background]; padding: 10px 12px; border-radius: 6px; margin: 12px 0;"><strong>[Label]:</strong> [content]</div>
 ```
 
-#### Guardrail Callout
+| Callout | Label | Accent | Background |
+|---|---|---|---|
+| At a Glance | `At a Glance` | `rgba(148, 163, 184, 0.60)` | `rgba(148, 163, 184, 0.10)` |
+| Guardrail | `Guardrail` | `rgba(251, 191, 36, 0.60)` | `rgba(251, 191, 36, 0.10)` |
+| Primary Risk | `Primary risk` | `rgba(248, 113, 113, 0.60)` | `rgba(248, 113, 113, 0.10)` |
+| Open Question | `Open question` | `rgba(167, 139, 250, 0.60)` | `rgba(167, 139, 250, 0.10)` |
+| Waived | callout-specific, e.g. `Primary risk: none material.` | `rgba(100, 116, 139, 0.55)` | `rgba(100, 116, 139, 0.08)` |
+
+Use this waived template when a required callout does not apply:
 
 ```html
-<div style="border-left: 4px solid rgba(251, 191, 36, 0.55); background: rgba(251, 191, 36, 0.10); padding: 12px 14px; border-radius: 8px; margin: 12px 0;">
-  <strong>Guardrail:</strong> [short warning]
-</div>
+<div style="border-left: 3px solid rgba(100, 116, 139, 0.55); background: rgba(100, 116, 139, 0.08); padding: 6px 10px; border-radius: 6px; margin: 8px 0; font-size: 0.9em; color: rgba(148, 163, 184, 0.85);"><strong>Primary risk: none material.</strong> [one-sentence rationale]</div>
 ```
 
-#### Risk Callout
+Substitute the callout name (`Primary risk`, `Guardrail`, `Open question`, etc.) for each waived callout. The styling stays identical; only the label changes.
 
-```html
-<div style="border: 1px solid rgba(248, 113, 113, 0.28); background: rgba(248, 113, 113, 0.10); padding: 14px; border-radius: 10px; margin: 16px 0;">
-  <strong>Primary risk</strong>
-  <div style="margin-top: 8px;">
-    [main thing to avoid]
-  </div>
-</div>
-```
-
-#### Open Question Callout
-
-```html
-<div style="border: 1px solid rgba(167, 139, 250, 0.28); background: rgba(167, 139, 250, 0.10); padding: 14px; border-radius: 10px; margin: 16px 0;">
-  <strong>Open question</strong>
-  <div style="margin-top: 8px;">
-    [specific unanswered question and what evidence is missing]
-  </div>
-</div>
-```
-
-#### In Scope / Out Of Scope Table
+Use this scope table where In / Out of Scope is required:
 
 ```html
 <table>
   <tr>
-    <td style="background: rgba(34, 211, 238, 0.10); border: 1px solid rgba(34, 211, 238, 0.28); padding: 12px; border-radius: 8px; width: 50%; vertical-align: top;">
+    <td style="background: rgba(34, 211, 238, 0.10); border-left: 4px solid rgba(34, 211, 238, 0.60); padding: 10px 12px; width: 50%; vertical-align: top;">
       <strong>In scope</strong><br />
       [what this document covers]
     </td>
-    <td style="background: rgba(251, 146, 60, 0.10); border: 1px solid rgba(251, 146, 60, 0.28); padding: 12px; border-radius: 8px; width: 50%; vertical-align: top;">
+    <td style="background: rgba(251, 146, 60, 0.10); border-left: 4px solid rgba(251, 146, 60, 0.60); padding: 10px 12px; width: 50%; vertical-align: top;">
       <strong>Out of scope</strong><br />
       [what this document does not cover]
     </td>
@@ -149,14 +74,4 @@ Opacity conventions (apply to whichever hue):
 </table>
 ```
 
-#### Waived Callout
-
-Use this compact one-liner whenever a required callout does not apply. The label names the waived callout type; the rationale follows the colon.
-
-```html
-<div style="border-left: 3px solid rgba(100, 116, 139, 0.50); background: rgba(100, 116, 139, 0.08); padding: 6px 12px; border-radius: 6px; margin: 8px 0; font-size: 0.9em; color: rgba(148, 163, 184, 0.85);">
-  <strong>Primary risk: none material.</strong> [one-sentence rationale]
-</div>
-```
-
-Substitute the callout name (`Primary risk`, `Guardrail`, `Open question`, etc.) for each waived callout. The styling stays identical; only the label changes.
+Use multi-line HTML only when a callout needs multiple paragraphs or a list. Keep the same outer style and avoid nested layout markup unless it materially improves readability.

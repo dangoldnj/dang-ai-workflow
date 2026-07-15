@@ -24,7 +24,7 @@ The validator `--next` result is authoritative when resuming a workspace.
 
 - formats/brief.md - canonical state for a unit of work
 - formats/phase.md - universal contract every phase inherits
-- formats/presentation.md - styling guidance for 20-research and 50-plan
+- formats/presentation.md - presentation and callout guidance for durable workflow documents
 
 ## Scripts
 
