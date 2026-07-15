@@ -2,8 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(git checkout *)",
-      "Bash(npx tsc *)",
-      "Bash(npm test *)"
+      "Bash(npx tsc *)"
     ]
   }
 }
