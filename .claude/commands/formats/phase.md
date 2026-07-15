@@ -9,7 +9,7 @@ Resolve workspace:
 Preconditions:
 - <workspace>/brief.md
 - <workspace>/task.md
-- brief.md must pass validator with no errors for this phase
+- brief.md must pass validator with no errors for this phase; write this file last, after any other file changes
 - Stop if precondition fails; report which file is missing
 
 The phase precheck enforces workspace files, prior phase dependencies, and validator-owned state rules. Phase-specific command files should list only preconditions that are not represented in the validator.
@@ -18,7 +18,7 @@ Write when the phase runs:
 - <workspace>/<phase-output-file>.md
 - <workspace>/brief.md (sections declared by the phase)
   Follow format guidelines in: .claude/commands/formats/brief.md
-- <workspace>/brief.md Decisions entry: `[phase] [ran] [phase completed]`
+- <workspace>/brief.md Decisions entry: `[phase] [ran: S7] [phase completed]`
 - <workspace>/brief.md frontmatter `status` (if `not-started`, set to `in-planning`)
 - <workspace>/brief.md frontmatter `current_phase` (set to this phase name only if it is later than the current value)
 
