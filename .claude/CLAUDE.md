@@ -26,14 +26,13 @@ Rules:
   Mixed-concern commits (e.g., adding a facility and using it in the same commit) require justification.
 - do not mark manual verification complete unless user explicitly confirms it
 
-Project-local environment:
-These lines describe this checkout's local operating constraints. Edit this block when unpacking the framework into a project with different tooling.
-
-- you are running in WSL. line ending differences between linux and windows should be ignored
-- **IMPORTANT**: do not run tests automatically, an external runner handles this
-- do not attempt to install anything without discussion
-- **CRITICAL**: do not run npm, pnpm, or any other test or install command. there are external runners. request that your human run them for you.
-
 Style:
 - prefer functional programming
 - prefer TypeScript
+
+Environment:
+- **IMPORTANT**: do not run tests automatically, an external runner handles this
+- do not attempt to install anything without discussion
+- **CRITICAL**: do not run npm, pnpm, or any other test or install command. there are external runners. request that your human run them for you.
+## LOCAL OVERRIDES (edit me)
+- you are running in WSL. line ending differences between linux and windows should be ignored
