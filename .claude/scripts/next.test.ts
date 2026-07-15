@@ -110,6 +110,36 @@ test('next action routes completed plan to 80-verify', t => {
   );
 });
 
+test('next action routes verified completed plan to 90-close', t => {
+  assert.deepEqual(
+    getNextWorkflowAction(
+      parseFixture(t, {
+        frontmatter: {
+          status: 'in-progress',
+          current_phase: '80-verify',
+        },
+        plan: [{ text: 'Implement validator tests', checked: true }],
+        acceptanceCriteria: [
+          { text: 'Validator behavior is covered', checked: true },
+        ],
+        decisions: ranDecisionsThrough('80-verify'),
+        progress: [{ step: 'Implement validator tests' }],
+        verification: {
+          status: 'pass',
+          automatedChecks: 'passed',
+          manualVerification: 'confirmed',
+        },
+        outputs: outputsThrough('80-verify'),
+      }),
+    ),
+    {
+      kind: 'phase',
+      phase: '90-close',
+      reason: 'Verification passed; ready to close',
+    },
+  );
+});
+
 test('next action stops for terminal or blocked statuses', t => {
   assert.deepEqual(
     getNextWorkflowAction(

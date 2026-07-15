@@ -89,6 +89,14 @@ export const getNextWorkflowAction = (
       };
     }
 
+    if (brief.sections.Verification?.status === 'pass') {
+      return {
+        kind: 'phase',
+        phase: '90-close',
+        reason: 'Verification passed; ready to close',
+      };
+    }
+
     return {
       kind: 'phase',
       phase: '80-verify',
