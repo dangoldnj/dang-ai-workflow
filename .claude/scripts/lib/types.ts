@@ -46,6 +46,12 @@ export type PlanItem = {
   raw: string;
 };
 
+export type BlockerEntry = {
+  id?: string;
+  text: string;
+  raw: string;
+};
+
 export type ProgressRecord = {
   step: string;
   status: StepStatus;
@@ -72,8 +78,8 @@ type ParsedBriefSections = {
   Plan: PlanItem[];
   'Acceptance Criteria': PlanItem[];
   Verification: VerificationRecord | undefined;
-  Conflicts: string[];
-  Unknowns: string[];
+  Conflicts: BlockerEntry[];
+  Unknowns: BlockerEntry[];
   Constraints: ConstraintEntry[];
   Decisions: DecisionEntry[];
   Progress: ProgressRecord[];

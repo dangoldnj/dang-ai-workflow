@@ -7,6 +7,7 @@ import { INVARIANTS } from './lib/invariants.ts';
 import { getNextWorkflowAction, type NextWorkflowAction } from './lib/next.ts';
 import type { ParsedBrief, Phase } from './lib/types.ts';
 import { checkAppendOnlySnapshot } from './lib/validate/append-only.ts';
+import { checkBlockerIds } from './lib/validate/blockers.ts';
 import { checkConstraintsTagging } from './lib/validate/constraints.ts';
 import { checkRequiredContent } from './lib/validate/content.ts';
 import { checkDecisionsShape } from './lib/validate/decisions.ts';
@@ -47,6 +48,7 @@ export const validateBrief = (
     ...checkStatusTransitions(brief),
     ...checkProgressConsistency(brief),
     ...checkPlanProgressConsistency(brief),
+    ...checkBlockerIds(brief),
     ...checkConstraintsTagging(brief),
     ...checkDecisionsShape(brief),
     ...checkPhaseAccounting(brief, options.workspacePath),

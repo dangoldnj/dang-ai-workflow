@@ -96,4 +96,4 @@ node .claude/scripts/migrate-brief.ts thoughts/shared/work/<slug>
 node .claude/scripts/migrate-brief.ts --write thoughts/shared/work/<slug>
 ```
 
-The migrator rewrites only `brief.md`. It adds IDs to Plan and Acceptance Criteria, rewrites `current_step`, rewrites Progress `Step:` references, and rewrites Acceptance Criteria deferral Decisions. It does not edit phase scratch files such as `60-prep.md`; update those manually if validation reports a stale `Selected step:` line.
+The migrator rewrites only `brief.md`. It adds IDs to Plan, Acceptance Criteria, Conflicts, and Unknowns; rewrites `current_step`; rewrites Progress `Step:` references; and rewrites Acceptance Criteria deferral Decisions. It does not edit phase scratch files such as `60-prep.md`; update those manually if validation reports a stale `Selected step:` line.

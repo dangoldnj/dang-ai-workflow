@@ -12,7 +12,7 @@ formats/phase.md
 - <workspace>/70-implement.md (scratch only)
 - <workspace>/brief.md
   - frontmatter: status (set to in-progress on first run), current_step
-  - sections: Progress (create or update current step record), Plan (check off completed step), Conflicts (if any)
+  - sections: Progress (create or update current step record), Plan (check off completed step), Conflicts with `CF` IDs (if any)
 
 brief.md is canonical for step status. 70-implement.md is scratch only.
 

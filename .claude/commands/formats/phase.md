@@ -34,7 +34,7 @@ Output:
 - Do not modify code outside of 70-implement.
 - If findings contradict the brief, follow the conflict protocol in brief.md.
 - Append any newly discovered constraints to brief.md Constraints, tagged with the current phase.
-- If this phase answers an open Unknown, follow the resolution protocol in brief.md: append a resolution note to the entry and move it to Decisions.
+- If this phase answers an open Unknown, follow the resolution protocol in brief.md: move it to Decisions with a `resolved UK` reference and preserve the original Unknown text in the Decision rationale.
 - Stop at every phase boundary. Do not auto-advance to the next phase. The user invokes each phase change explicitly.
 
 ## Validation

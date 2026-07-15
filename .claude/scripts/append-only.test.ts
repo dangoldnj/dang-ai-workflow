@@ -83,7 +83,7 @@ test('last-valid snapshot allows blockers moved to Decisions', t => {
     t,
     {
       decisions: [
-        '- [30-discuss] [resolved unknown] [User confirmed commits are authorized]',
+        '- [30-discuss] [resolved UK1] [Need user approval before committing. User confirmed commits are authorized]',
       ],
       lastValidBrief: buildBrief({
         unknowns: ['Need user approval before committing'],
@@ -94,6 +94,42 @@ test('last-valid snapshot allows blockers moved to Decisions', t => {
 
   assert.equal(result.ok, true);
   assert.deepEqual(result.violations, []);
+});
+
+test('last-valid snapshot requires moved blocker decisions to preserve text', t => {
+  assertHasInvariant(
+    parseAndValidate(
+      t,
+      {
+        decisions: [
+          '- [30-discuss] [resolved UK1] [User confirmed commits are authorized]',
+        ],
+        lastValidBrief: buildBrief({
+          unknowns: ['Need user approval before committing'],
+        }),
+      },
+      { workspacePath: true },
+    ),
+    'append-only-entry-removed',
+  );
+});
+
+test('last-valid snapshot requires blocker resolution decisions to reference IDs', t => {
+  assertHasInvariant(
+    parseAndValidate(
+      t,
+      {
+        decisions: [
+          '- [30-discuss] [chose TypeScript] [Matches project style]',
+        ],
+        lastValidBrief: buildBrief({
+          unknowns: ['Need user approval before committing'],
+        }),
+      },
+      { workspacePath: true },
+    ),
+    'append-only-entry-removed',
+  );
 });
 
 test('last-valid snapshot does not count phase accounting as blocker resolution', t => {

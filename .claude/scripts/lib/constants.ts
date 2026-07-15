@@ -4,8 +4,11 @@ export const BRIEF_VERSION = 2;
 
 export const STEP_ID_PATTERN = /^[A-Za-z][A-Za-z0-9-]*[0-9]+$/;
 
-export const ACCEPTANCE_CRITERION_ID_PATTERN =
-  /^AC(?:[A-Za-z0-9-]*[0-9]+)$/;
+export const ACCEPTANCE_CRITERION_ID_PATTERN = /^AC(?:[A-Za-z0-9-]*[0-9]+)$/;
+
+export const CONFLICT_ID_PATTERN = /^CF(?:[A-Za-z0-9-]*[0-9]+)$/;
+
+export const UNKNOWN_ID_PATTERN = /^UK(?:[A-Za-z0-9-]*[0-9]+)$/;
 
 export const WORKFLOW_STATUSES = [
   'not-started',

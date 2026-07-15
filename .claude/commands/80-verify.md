@@ -15,7 +15,7 @@ formats/phase.md
 - <workspace>/80-verify.md
 - <workspace>/brief.md
   - frontmatter: status (set to blocked if Conflicts appended)
-  - sections: Verification (set), Decisions (append deferrals if any), Conflicts (append if any)
+  - sections: Verification (set), Decisions (append deferrals if any), Conflicts with `CF` IDs (append if any)
 
 ## Do
 - Compare changes to the plan

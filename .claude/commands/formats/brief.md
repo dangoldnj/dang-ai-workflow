@@ -41,8 +41,8 @@ Frontmatter is the source of truth for these fields. The markdown body must not 
 - Plan `C` - Markdown checkbox items with stable IDs: `- [ ] [S1] Step title`. IDs may be grouped, e.g. `A1`, `A2`, `B1`; they must be unique and end with a number.
 - Acceptance Criteria `C` - Markdown checkbox items with stable IDs: `- [ ] [AC1] Criterion title`. IDs must start with `AC`, be unique, and end with a number.
 - Verification `D` - Initialized by run-workflow with a non-passing default record, then set by 80-verify. Machine-readable verification result for close.
-- Conflicts `B`
-- Unknowns `B`
+- Conflicts `B` - Markdown bullet items with stable IDs: `- [CF1] Conflict text`.
+- Unknowns `B` - Markdown bullet items with stable IDs: `- [UK1] Unknown text`.
 - Constraints `A` - Format: [phase] [constraint]. Initial entries written at init from task.md. Later phases append discovered constraints.
 - Decisions `A` - Format: [step] [choice] [why]. Phase accounting decisions use [phase] [ran|skipped] [why].
 - Progress `D` - One record per implementation step. Update the existing record in place as that step advances.
@@ -88,16 +88,16 @@ Notes:
 ## Conflict Protocol
 
 If any step finds reality contradicts the brief:
-- Append to Conflicts
+- Append to Conflicts with a `CF` ID
 - Set frontmatter `status` to blocked
 - Stop. Do not proceed until the user resolves it.
 
 When the user confirms resolution:
-- Move the entry to Decisions with format: [step-or-phase] [choice] [why]. Record the actual resolution; exact blocker text does not need to be preserved.
+- Move the entry to Decisions with format: [step-or-phase] [resolved CF-id] [original Conflict text; resolution]. Preserve the original Conflict text and record the actual resolution.
 - Set frontmatter `status` back to in-progress
 
 When a step obtains enough information to answer an Unknown:
-- Move the entry to Decisions with format: [step-or-phase] [choice] [why]. Record the actual answer; exact unknown text does not need to be preserved.
+- Move the entry to Decisions with format: [step-or-phase] [resolved UK-id] [original Unknown text; answer]. Preserve the original Unknown text and record the actual answer.
 
 ## Skipped Phases
 

@@ -17,7 +17,20 @@ type ChecklistItem = {
   text: string;
 };
 
-type Section = 'Plan' | 'Acceptance Criteria' | 'Progress' | 'Decisions' | null;
+type BlockerItem = {
+  prefix: string;
+  id?: string;
+  text: string;
+};
+
+type Section =
+  | 'Plan'
+  | 'Acceptance Criteria'
+  | 'Conflicts'
+  | 'Unknowns'
+  | 'Progress'
+  | 'Decisions'
+  | null;
 
 export const migrateBriefRaw = (raw: string): MigrationResult => {
   const normalized = raw.replace(/\r\n?/g, '\n');
@@ -41,12 +54,18 @@ export const migrateBriefRaw = (raw: string): MigrationResult => {
   const acTextToId = new Map<string, string>();
   const planIds = new Set<string>();
   const acIds = new Set<string>();
+  const conflictIds = new Set<string>();
+  const unknownIds = new Set<string>();
   const duplicatePlanTexts = new Set<string>();
   const duplicateAcTexts = new Set<string>();
   const assignedPlanIds: string[] = [];
   const assignedAcIds: string[] = [];
+  const assignedConflictIds: string[] = [];
+  const assignedUnknownIds: string[] = [];
   let planCounter = 1;
   let acCounter = 1;
+  let conflictCounter = 1;
+  let unknownCounter = 1;
   let rewrittenProgressRecords = 0;
   let rewrittenDecisionDeferrals = 0;
   let section: Section = null;
@@ -94,6 +113,38 @@ export const migrateBriefRaw = (raw: string): MigrationResult => {
           assignedPlanIds.push(`${id}: ${item.text}`);
         } else {
           assignedAcIds.push(`${id}: ${item.text}`);
+        }
+      }
+
+      continue;
+    }
+
+    if (section === 'Conflicts' || section === 'Unknowns') {
+      const item = parseBlockerItem(line);
+      if (item === undefined) {
+        continue;
+      }
+
+      const ids = section === 'Conflicts' ? conflictIds : unknownIds;
+      const id =
+        item.id ??
+        (section === 'Conflicts'
+          ? nextId('CF', conflictIds, conflictCounter++)
+          : nextId('UK', unknownIds, unknownCounter++));
+
+      if (item.id !== undefined) {
+        ids.add(item.id);
+      }
+
+      ids.add(id);
+
+      if (item.id === undefined) {
+        lines[i] = `${item.prefix}[${id}] ${item.text}`;
+        changed = true;
+        if (section === 'Conflicts') {
+          assignedConflictIds.push(`${id}: ${item.text}`);
+        } else {
+          assignedUnknownIds.push(`${id}: ${item.text}`);
         }
       }
 
@@ -189,6 +240,16 @@ export const migrateBriefRaw = (raw: string): MigrationResult => {
   if (assignedAcIds.length > 0) {
     report.push('Assigned Acceptance Criteria IDs:');
     report.push(...assignedAcIds.map(entry => `  ${entry}`));
+  }
+
+  if (assignedConflictIds.length > 0) {
+    report.push('Assigned Conflict IDs:');
+    report.push(...assignedConflictIds.map(entry => `  ${entry}`));
+  }
+
+  if (assignedUnknownIds.length > 0) {
+    report.push('Assigned Unknown IDs:');
+    report.push(...assignedUnknownIds.map(entry => `  ${entry}`));
   }
 
   if (rewrittenProgressRecords > 0) {
@@ -301,8 +362,21 @@ const parseChecklistItem = (line: string): ChecklistItem | undefined => {
   };
 };
 
+const parseBlockerItem = (line: string): BlockerItem | undefined => {
+  const m = line.match(/^(\s*-\s+)(?:(\[[^\]]+\])\s+)?(.+)$/);
+  if (m === null) {
+    return undefined;
+  }
+
+  return {
+    prefix: m[1],
+    ...(m[2] !== undefined ? { id: m[2].slice(1, -1).trim() } : {}),
+    text: m[3].trim(),
+  };
+};
+
 const nextId = (
-  prefix: 'S' | 'AC',
+  prefix: 'S' | 'AC' | 'CF' | 'UK',
   existingIds: Set<string>,
   start: number,
 ): string => {
@@ -320,6 +394,8 @@ const isMigratedSection = (
 ): heading is Exclude<Section, null> =>
   heading === 'Plan' ||
   heading === 'Acceptance Criteria' ||
+  heading === 'Conflicts' ||
+  heading === 'Unknowns' ||
   heading === 'Progress' ||
   heading === 'Decisions';
 

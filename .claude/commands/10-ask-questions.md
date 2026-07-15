@@ -19,7 +19,7 @@ formats/phase.md
 - <workspace>/10-ask-questions.md
 - <workspace>/brief.md
   - frontmatter: status (set to in-planning on first run)
-  - sections: Unknowns
+  - sections: Unknowns with `UK` IDs
 
 ## Do
 - List only necessary questions

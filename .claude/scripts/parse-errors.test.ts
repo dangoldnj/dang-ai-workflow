@@ -187,7 +187,10 @@ test('parse errors for structured sections are reported', t => {
     parseAndValidate(t, {
       rawBrief: buildBrief({
         conflicts: ['Conflict requires decision'],
-      }).replace('- Conflict requires decision', 'Conflict requires decision'),
+      }).replace(
+        '- [CF1] Conflict requires decision',
+        'Conflict requires decision',
+      ),
     }),
     'list-line-unparseable',
   );

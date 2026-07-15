@@ -2,7 +2,11 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { TestContext } from 'node:test';
-import { BRIEF_SECTIONS, LAST_VALID_SNAPSHOT, PHASES } from '../lib/constants.ts';
+import {
+  BRIEF_SECTIONS,
+  LAST_VALID_SNAPSHOT,
+  PHASES,
+} from '../lib/constants.ts';
 import { parseBrief } from '../lib/parse-brief.ts';
 import type { Phase } from '../lib/types.ts';
 import { PHASE_OUTPUT_FILES } from '../lib/validate/phase-accounting.ts';
@@ -48,6 +52,13 @@ export type ProgressFixture = {
   notes?: string[];
 };
 
+export type BlockerFixture =
+  | string
+  | {
+      id?: string;
+      text: string;
+    };
+
 export type WorkspaceFixture = {
   frontmatter?: Partial<Record<FrontmatterKey, FrontmatterValue>>;
   omitFrontmatter?: FrontmatterKey[];
@@ -57,8 +68,8 @@ export type WorkspaceFixture = {
   verification?: VerificationFixture;
   decisions?: string[];
   progress?: ProgressFixture[];
-  conflicts?: string[];
-  unknowns?: string[];
+  conflicts?: BlockerFixture[];
+  unknowns?: BlockerFixture[];
   constraints?: string[];
   outputs?: Record<string, string>;
   goal?: string;
@@ -179,10 +190,10 @@ export const buildBrief = (fixture: WorkspaceFixture): string => {
     ),
     '',
     sectionHeading(fixture, 'Conflicts'),
-    ...formatBullets(fixture.conflicts ?? []),
+    ...formatBlockers(fixture.conflicts ?? [], 'CF'),
     '',
     sectionHeading(fixture, 'Unknowns'),
-    ...formatBullets(fixture.unknowns ?? []),
+    ...formatBlockers(fixture.unknowns ?? [], 'UK'),
     '',
     sectionHeading(fixture, 'Constraints'),
     ...(fixture.constraints ?? []),
@@ -220,12 +231,23 @@ const withDefaultIds = (
   }));
 
 const formatChecklist = (items: Required<PlanItemFixture>[]): string[] =>
-  items.map(item => `- [${item.checked ? 'x' : ' '}] [${item.id}] ${item.text}`);
+  items.map(
+    item => `- [${item.checked ? 'x' : ' '}] [${item.id}] ${item.text}`,
+  );
 
-const formatBullets = (items: string[]): string[] =>
-  items.map(item => `- ${item}`);
+const formatBlockers = (
+  items: BlockerFixture[],
+  prefix: 'CF' | 'UK',
+): string[] =>
+  items.map((item, index) => {
+    const normalized: { id?: string; text: string } =
+      typeof item === 'string' ? { text: item } : item;
+    return `- [${normalized.id ?? `${prefix}${index + 1}`}] ${normalized.text}`;
+  });
 
-export const formatVerification = (verification: VerificationFixture): string[] => [
+export const formatVerification = (
+  verification: VerificationFixture,
+): string[] => [
   `Status: ${verification.status}`,
   'Automated checks:',
   `- ${verification.automatedChecks ?? 'not-run'}`,

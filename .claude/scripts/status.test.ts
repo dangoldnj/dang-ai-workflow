@@ -1,6 +1,7 @@
 import test from 'node:test';
 import { assertHasInvariant } from './test-support/assertions.ts';
 import {
+  buildBrief,
   parseAndValidate,
   ranDecisionsThrough,
 } from './test-support/brief-fixtures.ts';
@@ -61,6 +62,60 @@ test('Constraint tags must be known phases or init', t => {
       constraints: ['- [later] Invalid phase tag'],
     }),
     'constraint-invalid-tag',
+  );
+});
+
+test('Conflicts and Unknowns require stable unique IDs', t => {
+  assertHasInvariant(
+    parseAndValidate(t, {
+      rawBrief: buildBrief({
+        conflicts: ['Choose an API shape'],
+      }).replace('- [CF1] Choose an API shape', '- Choose an API shape'),
+    }),
+    'conflict-id-missing',
+  );
+
+  assertHasInvariant(
+    parseAndValidate(t, {
+      conflicts: [{ id: 'C1', text: 'Choose an API shape' }],
+    }),
+    'conflict-id-invalid',
+  );
+
+  assertHasInvariant(
+    parseAndValidate(t, {
+      conflicts: [
+        { id: 'CF1', text: 'Choose an API shape' },
+        { id: 'CF1', text: 'Choose a storage shape' },
+      ],
+    }),
+    'conflict-duplicate-id',
+  );
+
+  assertHasInvariant(
+    parseAndValidate(t, {
+      rawBrief: buildBrief({
+        unknowns: ['Need user decision'],
+      }).replace('- [UK1] Need user decision', '- Need user decision'),
+    }),
+    'unknown-id-missing',
+  );
+
+  assertHasInvariant(
+    parseAndValidate(t, {
+      unknowns: [{ id: 'U1', text: 'Need user decision' }],
+    }),
+    'unknown-id-invalid',
+  );
+
+  assertHasInvariant(
+    parseAndValidate(t, {
+      unknowns: [
+        { id: 'UK1', text: 'Need user decision' },
+        { id: 'UK1', text: 'Need product decision' },
+      ],
+    }),
+    'unknown-duplicate-id',
   );
 });
 

@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { LAST_VALID_SNAPSHOT, PHASES } from '../constants.ts';
 import { parseBrief } from '../parse-brief.ts';
-import type { DecisionEntry, ParsedBrief } from '../types.ts';
+import type { BlockerEntry, DecisionEntry, ParsedBrief } from '../types.ts';
 import { validationError } from './common.ts';
 import type { ValidationViolation } from './types.ts';
 
@@ -13,8 +13,8 @@ type AppendOnlySection = {
 
 type BlockerSection = {
   name: string;
-  previousEntries: string[];
-  currentEntries: string[];
+  previousEntries: BlockerEntry[];
+  currentEntries: BlockerEntry[];
 };
 
 export const checkAppendOnlySnapshot = (
@@ -97,7 +97,7 @@ const checkBlockerSections = (
   previous: ParsedBrief,
   current: ParsedBrief,
 ): ValidationViolation[] => {
-  const resolvingDecisionCount = countNewResolvingDecisions(
+  const resolvingDecisionsByBlockerId = getNewResolvingDecisionsByBlockerId(
     previous.sections.Decisions,
     current.sections.Decisions,
   );
@@ -114,46 +114,106 @@ const checkBlockerSections = (
     },
   ];
 
-  let movedBlockerCount = 0;
   return sections.flatMap(section => {
+    const currentEntriesById = new Map<string, BlockerEntry>(
+      section.currentEntries.flatMap(blockerEntryIdPair),
+    );
+
     return section.previousEntries.flatMap((previousEntry, index) => {
-      if (section.currentEntries.includes(previousEntry)) {
-        return [];
+      if (previousEntry.id === undefined) {
+        if (
+          section.currentEntries.some(entry => entry.raw === previousEntry.raw)
+        ) {
+          return [];
+        }
+
+        return reportMissingBlocker(
+          section.name,
+          index,
+          section.currentEntries,
+        );
       }
 
-      movedBlockerCount += 1;
-      if (movedBlockerCount <= resolvingDecisionCount) {
-        return [];
-      }
+      const currentEntry = currentEntriesById.get(previousEntry.id);
+      if (currentEntry !== undefined) {
+        if (currentEntry.raw === previousEntry.raw) {
+          return [];
+        }
 
-      if (section.currentEntries[index] !== undefined) {
         return [
           validationError(
             'append-only-entry-modified',
-            `${section.name} entry ${index + 1} from ${LAST_VALID_SNAPSHOT} was modified instead of preserved or moved to Decisions`,
+            `${section.name} entry ${previousEntry.id} from ${LAST_VALID_SNAPSHOT} was modified instead of preserved or moved to Decisions`,
             section.name,
           ),
         ];
       }
 
-      return [
-        validationError(
-          'append-only-entry-removed',
-          `${section.name} entry ${index + 1} from ${LAST_VALID_SNAPSHOT} was removed instead of preserved or moved to Decisions`,
-          section.name,
-        ),
-      ];
+      const resolvingDecision = resolvingDecisionsByBlockerId.get(
+        previousEntry.id,
+      );
+      if (resolvingDecision !== undefined) {
+        if (resolvingDecision.why.includes(previousEntry.text)) {
+          return [];
+        }
+
+        return [
+          validationError(
+            'append-only-entry-removed',
+            `${section.name} entry ${previousEntry.id} from ${LAST_VALID_SNAPSHOT} was moved to Decisions, but the resolving Decision does not preserve the original text`,
+            section.name,
+          ),
+        ];
+      }
+
+      return reportMissingBlocker(section.name, index, section.currentEntries);
     });
   });
 };
 
-const countNewResolvingDecisions = (
+const blockerEntryIdPair = (entry: BlockerEntry): [string, BlockerEntry][] =>
+  entry.id === undefined ? [] : [[entry.id, entry]];
+
+const reportMissingBlocker = (
+  sectionName: string,
+  index: number,
+  currentEntries: BlockerEntry[],
+): ValidationViolation[] => {
+  if (currentEntries[index] !== undefined) {
+    return [
+      validationError(
+        'append-only-entry-modified',
+        `${sectionName} entry ${index + 1} from ${LAST_VALID_SNAPSHOT} was modified instead of preserved or moved to Decisions`,
+        sectionName,
+      ),
+    ];
+  }
+
+  return [
+    validationError(
+      'append-only-entry-removed',
+      `${sectionName} entry ${index + 1} from ${LAST_VALID_SNAPSHOT} was removed instead of preserved or moved to Decisions`,
+      sectionName,
+    ),
+  ];
+};
+
+const getNewResolvingDecisionsByBlockerId = (
   previousDecisions: DecisionEntry[],
   currentDecisions: DecisionEntry[],
-): number =>
-  currentDecisions
-    .slice(previousDecisions.length)
-    .filter(decision => !isPhaseAccountingDecision(decision)).length;
+): Map<string, DecisionEntry> =>
+  new Map(
+    currentDecisions.slice(previousDecisions.length).flatMap(decision => {
+      if (isPhaseAccountingDecision(decision)) {
+        return [];
+      }
+
+      const id = decision.choice.match(/^resolved\s+(CF\S+|UK\S+)$/)?.[1];
+      return id === undefined
+        ? []
+        : ([[id, decision]] as [string, DecisionEntry][]);
+    }),
+  );
 
 const isPhaseAccountingDecision = (decision: DecisionEntry): boolean =>
   PHASES.includes(decision.step as (typeof PHASES)[number]) &&
