@@ -140,6 +140,64 @@ test('next action routes verified completed plan to 90-close', t => {
   );
 });
 
+test('next action routes failed verification to 60-prep for rework', t => {
+  assert.deepEqual(
+    getNextWorkflowAction(
+      parseFixture(t, {
+        frontmatter: {
+          status: 'in-progress',
+          current_phase: '80-verify',
+        },
+        plan: [{ text: 'Implement validator tests', checked: true }],
+        decisions: ranDecisionsThrough('80-verify'),
+        progress: [{ step: 'Implement validator tests' }],
+        verification: {
+          status: 'fail',
+          automatedChecks: 'failed',
+          manualVerification: 'confirmed',
+        },
+        outputs: outputsThrough('80-verify'),
+      }),
+    ),
+    {
+      kind: 'phase',
+      phase: '60-prep',
+      reason: 'Verification failed; select a rework step',
+    },
+  );
+});
+
+test('next action routes completed rework back to 80-verify', t => {
+  assert.deepEqual(
+    getNextWorkflowAction(
+      parseFixture(t, {
+        frontmatter: {
+          status: 'in-progress',
+          current_phase: '80-verify',
+        },
+        plan: [{ text: 'Implement validator tests', checked: true }],
+        decisions: [
+          ...ranDecisionsThrough('80-verify'),
+          '- [60-prep] [ran] [Selected rework after verification failed]',
+          '- [70-implement] [ran] [Rework completed]',
+        ],
+        progress: [{ step: 'Implement validator tests' }],
+        verification: {
+          status: 'fail',
+          automatedChecks: 'failed',
+          manualVerification: 'confirmed',
+        },
+        outputs: outputsThrough('80-verify'),
+      }),
+    ),
+    {
+      kind: 'phase',
+      phase: '80-verify',
+      reason: 'All Plan items are checked',
+    },
+  );
+});
+
 test('next action stops for terminal or blocked statuses', t => {
   assert.deepEqual(
     getNextWorkflowAction(

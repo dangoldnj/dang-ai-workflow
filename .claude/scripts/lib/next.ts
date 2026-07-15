@@ -1,6 +1,14 @@
 import { PHASES, WORKFLOW_STATUSES } from './constants.ts';
 import type { ParsedBrief, Phase } from './types.ts';
 
+type ReworkLoopPhase = '60-prep' | '70-implement' | '80-verify';
+
+const REWORK_LOOP_PHASES: readonly ReworkLoopPhase[] = [
+  '60-prep',
+  '70-implement',
+  '80-verify',
+];
+
 type StopReason =
   | 'abandoned'
   | 'blocked'
@@ -97,6 +105,17 @@ export const getNextWorkflowAction = (
       };
     }
 
+    if (
+      brief.sections.Verification?.status === 'fail' &&
+      getLatestRanReworkLoopPhase(brief) === '80-verify'
+    ) {
+      return {
+        kind: 'phase',
+        phase: '60-prep',
+        reason: 'Verification failed; select a rework step',
+      };
+    }
+
     return {
       kind: 'phase',
       phase: '80-verify',
@@ -119,3 +138,23 @@ export const getNextWorkflowAction = (
     reason: `Continue after ${currentPhase}`,
   };
 };
+
+const getLatestRanReworkLoopPhase = (
+  brief: ParsedBrief,
+): ReworkLoopPhase | undefined => {
+  const decision = [...brief.sections.Decisions]
+    .reverse()
+    .find(
+      entry =>
+        isReworkLoopPhase(entry.step) && entry.choice.toLowerCase() === 'ran',
+    );
+
+  if (decision === undefined || !isReworkLoopPhase(decision.step)) {
+    return undefined;
+  }
+
+  return decision.step;
+};
+
+const isReworkLoopPhase = (phase: string): phase is ReworkLoopPhase =>
+  REWORK_LOOP_PHASES.includes(phase as ReworkLoopPhase);

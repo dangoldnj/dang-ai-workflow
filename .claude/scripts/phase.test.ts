@@ -5,6 +5,7 @@ import {
   outputsThrough,
   parseAndValidate,
   ranDecisionsThrough,
+  type WorkspaceFixture,
 } from './test-support/brief-fixtures.ts';
 
 test('phase preconditions distinguish missing outputs from skipped phases', t => {
@@ -130,6 +131,66 @@ test('90-close precheck requires passing verification', t => {
   );
 
   assertHasInvariant(result, 'close-without-verification-pass');
+});
+
+test('60-prep may select rework after failed verification', t => {
+  const outputs = outputsThrough('80-verify');
+  outputs['60-prep.md'] = 'Selected step: S1\n';
+
+  const failedVerification = {
+    frontmatter: {
+      status: 'in-progress',
+      current_phase: '80-verify',
+    },
+    plan: [{ text: 'Implement validator tests', checked: true }],
+    acceptanceCriteria: [
+      { text: 'Validator behavior is covered', checked: true },
+    ],
+    decisions: ranDecisionsThrough('80-verify'),
+    progress: [{ step: 'Implement validator tests' }],
+    verification: {
+      status: 'fail',
+      automatedChecks: 'failed',
+      manualVerification: 'confirmed',
+    },
+    outputs,
+  } satisfies WorkspaceFixture;
+
+  assert.equal(
+    parseAndValidate(t, failedVerification, {
+      beforePhase: '60-prep',
+      workspacePath: true,
+    }).ok,
+    true,
+  );
+
+  assert.equal(
+    parseAndValidate(
+      t,
+      {
+        ...failedVerification,
+        frontmatter: {
+          ...failedVerification.frontmatter,
+          current_step: 'Implement validator tests',
+        },
+        plan: [{ text: 'Implement validator tests' }],
+        decisions: [
+          ...failedVerification.decisions,
+          '- [60-prep] [ran] [Selected rework after verification failed]',
+        ],
+        progress: [
+          {
+            step: 'Implement validator tests',
+            status: 'in-progress',
+            automatedChecks: 'not-run',
+            manualVerification: 'not-needed',
+          },
+        ],
+      },
+      { beforePhase: '70-implement', workspacePath: true },
+    ).ok,
+    true,
+  );
 });
 
 test('phase accounting detects future and missing ran outputs', t => {

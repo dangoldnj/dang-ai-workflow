@@ -28,6 +28,7 @@ If Step selector is "next unchecked step":
 - <workspace>/60-prep.md
 - <workspace>/brief.md
   - frontmatter: current_step (set to selected Plan item ID)
+  - sections: Plan and Progress, only when reopening a completed step for failed-verification rework
 
 The canonical `60-prep.md` is overwritten for each selected step. If per-step history is needed, create an archive copy such as `60-prep.<step-id>.md`, but keep `60-prep.md` as the current selected-step scratch file.
 
@@ -36,6 +37,13 @@ The canonical `60-prep.md` is overwritten for each selected step. If per-step hi
 - Write a `Selected step:` line containing only the chosen Plan item ID in 60-prep.md
 - Reduce the plan to only what is needed for that step
 - List required files, commands, constraints, and stop conditions
+
+## Rework after failed verification
+- If `Verification` is `Status: fail` and all Plan items are checked, select exactly one Plan item to rework.
+- Reopen that selected item by unchecking it in Plan.
+- Update the selected item's existing Progress record away from `complete` to the active status that represents the rework state.
+- Do not create a second Progress record for the same Plan item.
+- Leave `Verification` as failed. 80-verify owns replacing it after rework is implemented.
 
 ## Constraints
 - If the current step cannot be identified confidently, stop
