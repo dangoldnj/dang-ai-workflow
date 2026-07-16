@@ -59,17 +59,19 @@ export const checkPhaseAccounting = (
     );
   }
 
-  const futureAccountedPhases = PHASES.slice(currentIndex + 1).flatMap(phase => {
-    const latestOutcome = getLatestPhaseOutcome(brief, phase);
-    return latestOutcome === undefined
-      ? []
-      : checkLatestPhaseOutcome(
-          phase,
-          latestOutcome,
-          currentIndex,
-          workspacePath,
-        );
-  });
+  const futureAccountedPhases = PHASES.slice(currentIndex + 1).flatMap(
+    phase => {
+      const latestOutcome = getLatestPhaseOutcome(brief, phase);
+      return latestOutcome === undefined
+        ? []
+        : checkLatestPhaseOutcome(
+            phase,
+            latestOutcome,
+            currentIndex,
+            workspacePath,
+          );
+    },
+  );
 
   v.push(...futureAccountedPhases);
 
@@ -186,7 +188,7 @@ const getLatestPhaseOutcome = (
 
 const parsePhaseOutcome = (choice: string): PhaseOutcome | undefined => {
   const normalized = choice.toLowerCase();
-  if (normalized === 'ran') return 'ran';
+  if (normalized === 'ran' || normalized.startsWith('ran:')) return 'ran';
   if (normalized === 'skipped') return 'skipped';
   return undefined;
 };
