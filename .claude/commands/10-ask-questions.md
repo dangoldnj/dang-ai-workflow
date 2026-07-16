@@ -25,6 +25,9 @@ formats/phase.md
 - List only necessary questions
 - Prefer codebase-answerable questions
 - Mark user-blocking questions clearly
+- For user-blocking questions, conduct an interview: ask one question at a time, offer your best-guess answer with each, and wait for the user's reply
+- Record each interview answer as a resolved UK Decision tagged [user-confirmed]
+- Bias the interview toward shrinking scope: probe what can be cut, deferred, or split
 
 ## Do not
 - Answer questions
