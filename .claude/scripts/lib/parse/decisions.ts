@@ -9,11 +9,13 @@ export const parseDecisions = (
   const errors: ParseIssue[] = [];
   for (const [index, line] of section.body.split('\n').entries()) {
     if (line.trim() === '') continue;
-    const m = line.match(/^-\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s*$/);
+    const m = line.match(
+      /^-\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+\[([^\]]+)\](?:\s+\[(user-confirmed)\])?\s*$/,
+    );
     if (!m) {
       errors.push({
         code: 'decision-line-unparseable',
-        message: `Decision line must match "- [step] [choice] [why]": ${line}`,
+        message: `Decision line must match "- [step] [choice] [why]" with optional "[user-confirmed]": ${line}`,
         location: `Decisions:${section.startLine + index}`,
       });
       continue;
@@ -22,6 +24,7 @@ export const parseDecisions = (
       step: m[1].trim(),
       choice: m[2].trim(),
       why: m[3].trim(),
+      userConfirmed: m[4] === 'user-confirmed',
       raw: m[0],
     });
   }

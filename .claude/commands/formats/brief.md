@@ -44,7 +44,7 @@ Frontmatter is the source of truth for these fields. The markdown body must not 
 - Conflicts `B` - Markdown bullet items with stable IDs: `- [CF1] Conflict text`.
 - Unknowns `B` - Markdown bullet items with stable IDs: `- [UK1] Unknown text`.
 - Constraints `A` - Format: [phase] [constraint]. Initial entries written at init from task.md. Later phases append discovered constraints.
-- Decisions `A` - Format: [step] [choice] [why]. Phase accounting decisions use [phase] [ran|skipped] [why].
+- Decisions `A` - Format: [step] [choice] [why] with optional trailing [user-confirmed]. Phase accounting decisions use [phase] [ran|skipped] [why]. The 30-discuss approach Decision must be recorded as [30-discuss] [approach: <name>] [rationale] [user-confirmed] after explicit user approval.
 - Progress `D` - One record per implementation step. Update the existing record in place as that step advances.
 
 ## Frontmatter status details

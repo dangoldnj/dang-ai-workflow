@@ -59,6 +59,15 @@ export type BlockerFixture =
       text: string;
     };
 
+export type DecisionFixture =
+  | string
+  | {
+      step: string;
+      choice: string;
+      why: string;
+      userConfirmed?: boolean;
+    };
+
 export type WorkspaceFixture = {
   frontmatter?: Partial<Record<FrontmatterKey, FrontmatterValue>>;
   omitFrontmatter?: FrontmatterKey[];
@@ -66,7 +75,7 @@ export type WorkspaceFixture = {
   plan?: PlanItemFixture[];
   acceptanceCriteria?: PlanItemFixture[];
   verification?: VerificationFixture;
-  decisions?: string[];
+  decisions?: DecisionFixture[];
   progress?: ProgressFixture[];
   conflicts?: BlockerFixture[];
   unknowns?: BlockerFixture[];
@@ -199,7 +208,7 @@ export const buildBrief = (fixture: WorkspaceFixture): string => {
     ...(fixture.constraints ?? []),
     '',
     sectionHeading(fixture, 'Decisions'),
-    ...(fixture.decisions ?? []),
+    ...formatDecisions(fixture.decisions ?? []),
     '',
     sectionHeading(fixture, 'Progress'),
     ...formatProgress(fixture.progress ?? [], planIdsByText),
@@ -243,6 +252,18 @@ const formatBlockers = (
     const normalized: { id?: string; text: string } =
       typeof item === 'string' ? { text: item } : item;
     return `- [${normalized.id ?? `${prefix}${index + 1}`}] ${normalized.text}`;
+  });
+
+const formatDecisions = (items: DecisionFixture[]): string[] =>
+  items.map(item => {
+    if (typeof item === 'string') {
+      return item;
+    }
+
+    return (
+      `- [${item.step}] [${item.choice}] [${item.why}]` +
+      `${item.userConfirmed ? ' [user-confirmed]' : ''}`
+    );
   });
 
 export const formatVerification = (

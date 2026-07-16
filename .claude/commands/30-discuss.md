@@ -29,11 +29,14 @@ formats/phase.md
 - Write Acceptance Criteria as checkbox items with stable `AC` IDs, e.g. `- [ ] [AC1] Criterion`
 - Follow presentation guidelines in: .claude/commands/formats/presentation.md
 - Lead with the chosen approach and confidence level
+- Present the chosen approach to the user and wait for explicit approval before recording it as a Decision
+- After explicit approval, append `- [30-discuss] [approach: <name>] [rationale] [user-confirmed]` to Decisions
 
 ## Constraints
 - Present risks before benefits
 - Do not assume missing data
 - Only use historical files when clearly relevant
+- Never record an unconfirmed approach Decision
 
 ## Do not
 - Plan implementation steps
@@ -49,3 +52,6 @@ formats/phase.md
 - Confidence level (high / medium / low)
 - Confidence level justification per option
 - Historical references
+
+After presenting the output, stop for user approval. Only after approval write the
+Approach section, Acceptance Criteria, and confirmed approach Decision.

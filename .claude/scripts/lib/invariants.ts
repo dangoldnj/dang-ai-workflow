@@ -64,6 +64,8 @@ export const INVARIANTS = [
   'plan-item-id-missing',
   'plan-line-unparseable',
   'plan-unchecked-with-complete-progress',
+  'plan-without-approach-decision',
+  'plan-without-confirmed-approach',
   'planning-with-unresolved-unknowns',
   'prep-with-active-current-step',
   'progress-checks-passed-mismatch',

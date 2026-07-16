@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import type { ParsedBrief, Phase } from '../types.ts';
+import { checkApproachConfirmation } from './approach-confirmation.ts';
 import { validationError } from './common.ts';
 import {
   PHASE_OUTPUT_FILES,
@@ -33,6 +34,12 @@ export const checkPhasePreconditions = (
       : checkRequiredPriorPhases(brief, phase, workspacePath);
 
   switch (phase) {
+    case '50-plan':
+      return [
+        ...workspaceViolations,
+        ...priorPhaseViolations,
+        ...checkApproachConfirmation(brief),
+      ];
     case '60-prep':
       return [
         ...workspaceViolations,

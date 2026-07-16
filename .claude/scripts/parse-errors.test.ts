@@ -4,8 +4,10 @@ import { assertHasInvariant } from './test-support/assertions.ts';
 import {
   buildBrief,
   formatVerification,
+  makeWorkspace,
   parseAndValidate,
 } from './test-support/brief-fixtures.ts';
+import { parseBrief } from './lib/parse-brief.ts';
 
 test('frontmatter accepts only intended keys and value formats', t => {
   assertHasInvariant(
@@ -214,6 +216,43 @@ test('parse errors for structured sections are reported', t => {
       decisions: ['- [   ] [selected approach] [User chose it]'],
     }),
     'decision-empty-field',
+  );
+
+  assertHasInvariant(
+    parseAndValidate(t, {
+      decisions: ['- [30-discuss] [approach: minimal] [Chosen] [reviewed]'],
+    }),
+    'decision-line-unparseable',
+  );
+});
+
+test('Decision parser accepts only the user-confirmed fourth bracket', t => {
+  const workspace = makeWorkspace(t, {
+    decisions: [
+      '- [30-discuss] [approach: minimal] [Fits the change]',
+      {
+        step: '30-discuss',
+        choice: 'approach: explicit confirmation',
+        why: 'User approved before recording',
+        userConfirmed: true,
+      },
+    ],
+  });
+
+  const parsed = parseBrief(workspace.briefPath);
+
+  assert.deepEqual(parsed.parseErrors, []);
+  assert.deepEqual(parsed.sections.Decisions[0], {
+    step: '30-discuss',
+    choice: 'approach: minimal',
+    why: 'Fits the change',
+    userConfirmed: false,
+    raw: '- [30-discuss] [approach: minimal] [Fits the change]',
+  });
+  assert.equal(parsed.sections.Decisions[1].userConfirmed, true);
+  assert.equal(
+    parsed.sections.Decisions[1].raw,
+    '- [30-discuss] [approach: explicit confirmation] [User approved before recording] [user-confirmed]',
   );
 });
 

@@ -69,6 +69,8 @@ export const COVERED_INVARIANTS = {
     'phase-accounting-ran-phase-missing-output',
     'phase-precheck-without-workspace-path',
     'phase-precondition-missing-file',
+    'plan-without-approach-decision',
+    'plan-without-confirmed-approach',
     'prep-with-active-current-step',
     'implement-without-current-step',
     'verify-without-progress',

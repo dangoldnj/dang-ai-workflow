@@ -348,6 +348,65 @@ test('phase precheck invariants are reported', t => {
   );
 });
 
+test('50-plan precheck requires a confirmed approach Decision', t => {
+  const baseFixture = {
+    frontmatter: {
+      status: 'in-planning',
+      current_phase: '40-structure',
+    },
+    outputs: outputsThrough('40-structure'),
+  } satisfies WorkspaceFixture;
+
+  const missing = parseAndValidate(
+    t,
+    {
+      ...baseFixture,
+      decisions: ranDecisionsThrough('40-structure'),
+    },
+    { beforePhase: '50-plan', workspacePath: true },
+  );
+  assert.equal(missing.ok, true);
+  assertHasInvariant(missing, 'plan-without-approach-decision');
+
+  const unconfirmed = parseAndValidate(
+    t,
+    {
+      ...baseFixture,
+      decisions: [
+        ...ranDecisionsThrough('40-structure'),
+        '- [30-discuss] [approach: minimal validator change] [Lowest risk]',
+      ],
+    },
+    { beforePhase: '50-plan', workspacePath: true },
+  );
+  assert.equal(unconfirmed.ok, true);
+  assertHasInvariant(unconfirmed, 'plan-without-confirmed-approach');
+
+  const confirmed = parseAndValidate(
+    t,
+    {
+      ...baseFixture,
+      decisions: [
+        ...ranDecisionsThrough('40-structure'),
+        {
+          step: '30-discuss',
+          choice: 'approach: minimal validator change',
+          why: 'User approved the approach',
+          userConfirmed: true,
+        },
+      ],
+    },
+    { beforePhase: '50-plan', workspacePath: true },
+  );
+  assert.equal(confirmed.ok, true);
+  assert.deepEqual(
+    confirmed.violations.filter(v =>
+      v.invariant.startsWith('plan-without-'),
+    ),
+    [],
+  );
+});
+
 test('selected step output shape is validated', t => {
   assertHasInvariant(
     parseAndValidate(

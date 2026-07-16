@@ -36,6 +36,7 @@ export type DecisionEntry = {
   step: string;
   choice: string;
   why: string;
+  userConfirmed: boolean;
   raw: string;
 };
 
