@@ -14,6 +14,8 @@ formats/phase.md
 
 ## Do
 - Define vertical slices
+- Assign each slice a stable `SL` ID in its heading, e.g. `### SL1 - Slice title`
+- Map each slice to the Acceptance Criteria IDs it covers; every AC ID must appear in at least one slice
 - Make each slice testable
 - Order slices by execution dependency
 - Identify the first slice
