@@ -69,7 +69,7 @@ Step-level status (not-started / in-progress / blocked / automated-checks-passed
 
 Status: pass / fail
 Automated checks:
-- passed / failed / not run
+- passed / failed / not run / deferred
 Manual verification:
 - confirmed / needed / deferred
 Notes:

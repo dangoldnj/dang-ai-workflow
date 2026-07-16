@@ -89,6 +89,7 @@ export const INVARIANTS = [
   'verification-manual-missing',
   'verification-manual-too-many-items',
   'verification-pass-with-active-current-step',
+  'verification-pass-with-automated-checks-deferred-without-decision',
   'verification-pass-with-conflicts',
   'verification-pass-with-manual-verification-deferred-without-decision',
   'verification-pass-with-unchecked-plan',

@@ -107,6 +107,7 @@ export const COVERED_INVARIANTS = {
   verification: [
     'verification-pass-with-active-current-step',
     'verification-pass-without-latest-complete-progress',
+    'verification-pass-with-automated-checks-deferred-without-decision',
     'verification-pass-with-manual-verification-deferred-without-decision',
     'verification-pass-with-unchecked-plan',
     'verification-pass-with-unmet-acceptance-criteria',

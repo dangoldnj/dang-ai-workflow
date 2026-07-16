@@ -54,26 +54,34 @@ export const extractSingleListField = (
   };
 };
 
-export const parseAutomated = (
+type AutomatedCheckValue = 'passed' | 'failed' | 'not-run' | 'deferred';
+
+export const parseAutomated = <T extends AutomatedCheckValue>(
   s: string,
   location: string,
-): ParseResult<'passed' | 'failed' | 'not-run'> => {
+  allowedValues: readonly T[],
+): ParseResult<T> => {
   const v = s.toLowerCase().trim();
-  if (v === 'passed') return { value: 'passed', errors: [] };
-  if (v === 'failed') return { value: 'failed', errors: [] };
-  if (v === 'not run' || v === 'not-run') {
-    return { value: 'not-run', errors: [] };
+  const normalized = v === 'not run' ? 'not-run' : v;
+  if (allowedValues.includes(normalized as T)) {
+    return { value: normalized as T, errors: [] };
   }
   return {
-    value: 'not-run',
+    value: 'not-run' as T,
     errors: [
       {
         code: 'automated-checks-invalid',
-        message: `Automated checks must be passed, failed, or not run; got: ${s || 'missing'}`,
+        message: `Automated checks must be ${formatAllowedValues(allowedValues)}; got: ${s || 'missing'}`,
         location,
       },
     ],
   };
+};
+
+const formatAllowedValues = (values: readonly AutomatedCheckValue[]): string => {
+  const labels = values.map(value => (value === 'not-run' ? 'not run' : value));
+  if (labels.length === 1) return labels[0]!;
+  return `${labels.slice(0, -1).join(', ')}, or ${labels[labels.length - 1]}`;
 };
 
 export const parseManual = (

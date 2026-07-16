@@ -70,7 +70,11 @@ const parseProgressBlock = (
   );
   const notes = extractListField(block, 'Notes:');
   const parsedStatus = parseProgressStatus(status, location);
-  const parsedAutomated = parseAutomated(automated.value, location);
+  const parsedAutomated = parseAutomated(automated.value, location, [
+    'passed',
+    'failed',
+    'not-run',
+  ]);
   const parsedManual = parseManual(manual.value, location);
 
   return {

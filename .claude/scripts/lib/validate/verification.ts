@@ -82,12 +82,28 @@ export const checkVerificationPreconditions = (
     );
   }
 
-  if (verification.automatedChecks !== 'passed') {
+  if (
+    verification.automatedChecks !== 'passed' &&
+    verification.automatedChecks !== 'deferred'
+  ) {
     v.push(
       validationError(
         'verification-pass-without-automated-checks',
-        `Verification status is pass but Automated checks is ${verification.automatedChecks}; expected passed`,
+        `Verification status is pass but Automated checks is ${verification.automatedChecks}; expected passed or deferred`,
         'Verification',
+      ),
+    );
+  }
+
+  if (
+    verification.automatedChecks === 'deferred' &&
+    !hasDeferredAutomatedChecks(brief.sections.Decisions)
+  ) {
+    v.push(
+      validationError(
+        'verification-pass-with-automated-checks-deferred-without-decision',
+        'Verification status is pass with Automated checks deferred but Decisions has no [80-verify] [defer automated checks] rationale',
+        'Decisions',
       ),
     );
   }
@@ -138,5 +154,13 @@ const hasDeferredManualVerification = (decisions: DecisionEntry[]): boolean => {
     decision =>
       decision.step === '80-verify' &&
       decision.choice.toLowerCase() === 'defer manual verification',
+  );
+};
+
+const hasDeferredAutomatedChecks = (decisions: DecisionEntry[]): boolean => {
+  return decisions.some(
+    decision =>
+      decision.step === '80-verify' &&
+      decision.choice.toLowerCase() === 'defer automated checks',
   );
 };

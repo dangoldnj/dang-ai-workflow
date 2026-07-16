@@ -33,7 +33,7 @@ export type PlanItemFixture = {
 
 export type VerificationFixture = {
   status: 'pass' | 'fail';
-  automatedChecks?: 'passed' | 'failed' | 'not-run';
+  automatedChecks?: 'passed' | 'failed' | 'not-run' | 'deferred';
   manualVerification?: 'confirmed' | 'needed' | 'deferred';
   notes?: string[];
 };

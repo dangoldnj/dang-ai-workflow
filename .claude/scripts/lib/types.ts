@@ -63,7 +63,7 @@ export type ProgressRecord = {
 
 export type VerificationRecord = {
   status: 'pass' | 'fail';
-  automatedChecks: 'passed' | 'failed' | 'not-run';
+  automatedChecks: 'passed' | 'failed' | 'not-run' | 'deferred';
   manualVerification: 'confirmed' | 'needed' | 'deferred';
   notes: string;
   raw: string;

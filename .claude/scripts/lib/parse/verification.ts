@@ -48,7 +48,12 @@ export const parseVerification = (
   );
   const notes = extractListField(body, 'Notes:');
   const parsedStatus = parseVerificationStatus(status, location);
-  const parsedAutomated = parseAutomated(automated.value, location);
+  const parsedAutomated = parseAutomated(automated.value, location, [
+    'passed',
+    'failed',
+    'not-run',
+    'deferred',
+  ]);
   const parsedManual = parseVerificationManual(manual.value, location);
 
   return {

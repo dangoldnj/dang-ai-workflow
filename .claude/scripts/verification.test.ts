@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertHasInvariant } from './test-support/assertions.ts';
 import {
+  buildBrief,
   parseAndValidate,
   ranDecisionsThrough,
   type WorkspaceFixture,
@@ -56,6 +57,36 @@ test('verification pass requires closed implementation state', t => {
       ...base,
       verification: {
         status: 'pass',
+        automatedChecks: 'deferred',
+        manualVerification: 'confirmed',
+      },
+      progress: [{ step: 'Implement validator tests' }],
+    }),
+    'verification-pass-with-automated-checks-deferred-without-decision',
+  );
+
+  const automatedDeferredResult = parseAndValidate(t, {
+    ...base,
+    decisions: [
+      ...base.decisions,
+      '- [80-verify] [defer automated checks] [No applicable automated checks for this change]',
+    ],
+    verification: {
+      status: 'pass',
+      automatedChecks: 'deferred',
+      manualVerification: 'confirmed',
+    },
+    progress: [{ step: 'Implement validator tests' }],
+  });
+
+  assert.equal(automatedDeferredResult.ok, true);
+  assert.deepEqual(automatedDeferredResult.violations, []);
+
+  assertHasInvariant(
+    parseAndValidate(t, {
+      ...base,
+      verification: {
+        status: 'pass',
         automatedChecks: 'passed',
         manualVerification: 'deferred',
       },
@@ -80,6 +111,23 @@ test('verification pass requires closed implementation state', t => {
 
   assert.equal(deferredResult.ok, true);
   assert.deepEqual(deferredResult.violations, []);
+});
+
+test('progress automated checks do not accept deferred', t => {
+  const rawBrief = buildBrief({
+    plan: [{ text: 'Implement validator tests', checked: true }],
+    progress: [{ step: 'Implement validator tests' }],
+  }).replace(
+    'Step: S1\nStatus: complete\nAutomated checks:\n- passed',
+    'Step: S1\nStatus: complete\nAutomated checks:\n- deferred',
+  );
+
+  assertHasInvariant(
+    parseAndValidate(t, {
+      rawBrief,
+    }),
+    'automated-checks-invalid',
+  );
 });
 
 test('verification pass invariants are reported', t => {
