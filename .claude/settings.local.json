@@ -1,8 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git checkout *)",
-      "Bash(npx tsc *)"
+      "Bash(git checkout -b *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(npx tsc *)",
+      "Bash(node .claude/scripts/validate-brief.ts *)"
     ]
   }
 }
