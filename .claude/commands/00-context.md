@@ -24,6 +24,7 @@ formats/phase.md
 ## Do
 - Restate the task in 1-2 sentences
 - List unknowns
+- If the task implies more than one independently shippable deliverable, propose splitting into separate workflow slugs and stop for user confirmation
 
 ## Do not
 - Propose solutions
