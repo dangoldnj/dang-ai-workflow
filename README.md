@@ -23,6 +23,8 @@ The core philosophy is simple:
 
 ## Quick Start
 
+The included scripts require Node >= 22.18.
+
 **Installation**
 
 Unpack this repository to the root of any project. The workflow files live in `.claude/` and a root-level `AGENTS.md` (which simply delegates to `.claude/CLAUDE.md`).

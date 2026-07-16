@@ -24,6 +24,8 @@ Write when the phase runs:
 
 After all writes, validate brief.md. Do not consider the phase complete until validation passes.
 
+If validation fails and the state cannot be repaired, restore brief.md from .brief.last-valid.md
+
 Output:
 - Phase-specific output
 - Next command to run: the next phase in pipeline order, regardless of whether this phase ran or skipped. The final phase (90-close) outputs no next command.
