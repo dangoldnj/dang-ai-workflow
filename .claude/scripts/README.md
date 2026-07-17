@@ -19,6 +19,24 @@ node .claude/scripts/migrate-brief.ts --write thoughts/shared/work/<slug>
 
 `--json` is accepted as an alias for `--format json`.
 
+## Workflow Sync
+
+Copy a selected upstream workflow directory into the current repository's
+`.claude` directory:
+
+```bash
+node .claude/scripts/sync-workflow.ts --commands
+node .claude/scripts/sync-workflow.ts --scripts --commit 7438941
+node .claude/scripts/sync-workflow.ts --commands --scripts --root /path/to/repo --commit v1.2.0
+```
+
+At least one of `--commands` or `--scripts` is required. Pass both flags when
+both directories should be updated.
+The default source is the `main` branch of the upstream workflow repository.
+`--commit` accepts any Git ref available from that repository, including a
+branch, tag, or commit SHA. The script overwrites matching files but does not
+delete additional files already present in the destination directories.
+
 ## Validator Exit Codes
 
 - `0`: validation passed. Warnings may still be present.

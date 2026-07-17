@@ -41,6 +41,17 @@ node .claude/scripts/summarize-briefs.ts --json
 node .claude/scripts/summarize-briefs.ts --verbose
 ```
 
+**Update workflow directories in-place**
+
+To update an existing project's workflow files, run this from that project's root:
+
+```bash
+node .claude/scripts/sync-workflow.ts --commands
+node .claude/scripts/sync-workflow.ts --scripts --commit <commit>
+```
+
+Pass both flags to update both directories explicitly. Matching files are overwritten and project-specific extra files are retained.
+
 **Starting a new task**
 
 ```
@@ -93,6 +104,7 @@ The workflow automatically builds a shared knowledge base upon completion of eac
       implement_plan.md
       research_codebase.md
   scripts/
+    sync-workflow.ts              # Pull commands and scripts from the upstream repo
     summarize-briefs.ts            # Summarize active briefs and promoted artifacts
     validate-brief.ts             # Structural validator - run after every phase write
     lib/
