@@ -31,6 +31,16 @@ Unpack this repository to the root of any project. The workflow files live in `.
 
 Alternatively, install once into a shared environment directory (e.g. `~/my-projects`) and open all your repos inside a single Cursor workspace - the workflow commands will be available across all of them.
 
+**Summarize briefs**
+
+To summarize active briefs and promoted artifacts:
+
+```bash
+node .claude/scripts/summarize-briefs.ts
+node .claude/scripts/summarize-briefs.ts --json
+node .claude/scripts/summarize-briefs.ts --verbose
+```
+
 **Starting a new task**
 
 ```
@@ -83,6 +93,7 @@ The workflow automatically builds a shared knowledge base upon completion of eac
       implement_plan.md
       research_codebase.md
   scripts/
+    summarize-briefs.ts            # Summarize active briefs and promoted artifacts
     validate-brief.ts             # Structural validator - run after every phase write
     lib/
       types.ts
