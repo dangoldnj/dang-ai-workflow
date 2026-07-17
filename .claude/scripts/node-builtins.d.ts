@@ -61,6 +61,7 @@ declare module 'node:os' {
 declare module 'node:path' {
   export const dirname: (path: string) => string;
   export const join: (...paths: string[]) => string;
+  export const relative: (from: string, to: string) => string;
   export const resolve: (...paths: string[]) => string;
 }
 
@@ -89,3 +90,7 @@ declare const process: {
   execPath: string;
   exit: (code?: number) => never;
 };
+
+interface ImportMeta {
+  main: boolean;
+}
