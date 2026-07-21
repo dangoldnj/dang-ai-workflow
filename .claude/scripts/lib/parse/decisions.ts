@@ -9,9 +9,10 @@ export const parseDecisions = (
   const errors: ParseIssue[] = [];
   for (const [index, line] of section.body.split('\n').entries()) {
     if (line.trim() === '') continue;
-    const m = line.match(
-      /^-\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+\[([^\]]+)\](?:\s+\[(user-confirmed)\])?\s*$/,
-    );
+    const m =
+      line.match(
+        /^-\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+\[(.+)\]\s+\[(user-confirmed)\]\s*$/,
+      ) ?? line.match(/^-\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+\[(.+)\]\s*$/);
     if (!m) {
       errors.push({
         code: 'decision-line-unparseable',
