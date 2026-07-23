@@ -146,7 +146,8 @@ const getLatestRanReworkLoopPhase = (
     .reverse()
     .find(
       entry =>
-        isReworkLoopPhase(entry.step) && entry.choice.toLowerCase() === 'ran',
+        isReworkLoopPhase(entry.step) &&
+        /^ran(:|$)/.test(entry.choice.toLowerCase()),
     );
 
   if (decision === undefined || !isReworkLoopPhase(decision.step)) {
