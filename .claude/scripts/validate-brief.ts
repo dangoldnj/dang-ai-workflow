@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { parseBrief } from './lib/parse-brief.ts';
 import { LAST_VALID_SNAPSHOT, PHASES } from './lib/constants.ts';
 import { INVARIANTS } from './lib/invariants.ts';
+import { requireNodeVersion } from './lib/require-node-version.ts';
 import { getNextWorkflowAction, type NextWorkflowAction } from './lib/next.ts';
 import type { ParsedBrief, Phase } from './lib/types.ts';
 import { checkAppendOnlySnapshot } from './lib/validate/append-only.ts';
@@ -94,6 +95,7 @@ type CliResult = ValidationResult & {
 };
 
 const main = (): void => {
+  requireNodeVersion();
   const parsedArgs = parseCliArgs(process.argv.slice(2));
   if (!parsedArgs.ok) {
     console.error(parsedArgs.message);

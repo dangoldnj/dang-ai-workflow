@@ -86,6 +86,8 @@ declare const process: {
   cwd: () => string;
   execPath: string;
   exit: (code?: number) => never;
+  version: string;
+  versions: { node: string };
 };
 
 interface ImportMeta {

@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { BRIEF_VERSION } from './lib/constants.ts';
 import { parseFrontmatter } from './lib/parse-frontmatter.ts';
+import { requireNodeVersion } from './lib/require-node-version.ts';
 
 type MigrationResult = {
   changed: boolean;
@@ -400,6 +401,7 @@ const isMigratedSection = (
   heading === 'Decisions';
 
 const main = (): void => {
+  requireNodeVersion();
   const args = process.argv.slice(2);
   const write = args.includes('--write');
   const print = args.includes('--print');
