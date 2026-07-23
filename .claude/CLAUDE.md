@@ -15,7 +15,7 @@ Rules:
 - stop at every phase boundary and wait for user confirmation
 - do not rely on chat history when a command lists input files
 - check brief.md frontmatter `commits_authorized` for commit authorization
-- if authorized, commit after each verified step with a short descriptive message referencing the step name
+- if authorized, confer with the user and then commit after each verified step with a short descriptive message referencing the step name
 - if committing code, ensure you have conferred with the user on the proposed contents before actually running any commit command
 - commits must be small, single-concern, and independently reviewable:
   - one commit extracts a function or helper and its supporting types/tests
