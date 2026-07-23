@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .claude/scripts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # 22.18+ is required for unflagged native TypeScript type stripping.
+          node-version: '22'
+      - name: Type-check
+        run: npx --yes -p typescript@5.7.3 tsc --noEmit
+      - name: Test
+        run: node --test "*.test.ts"
