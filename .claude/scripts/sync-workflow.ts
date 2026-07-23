@@ -6,7 +6,7 @@ import {
   readdirSync,
   rmSync,
 } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const UPSTREAM_REPOSITORY = 'https://github.com/dangoldnj/dang-ai-workflow.git';
@@ -17,6 +17,8 @@ type SyncOptions = {
   root: string;
   commit: string;
   directories: WorkflowDirectory[];
+  dryRun: boolean;
+  prune: boolean;
 };
 
 type ParsedArgs =
@@ -25,7 +27,9 @@ type ParsedArgs =
 
 type SyncResult = {
   commit: string;
+  dryRun: boolean;
   filesCopied: number;
+  pruned: string[];
   directories: WorkflowDirectory[];
 };
 
@@ -33,6 +37,8 @@ export const syncWorkflow = ({
   root,
   commit,
   directories,
+  dryRun,
+  prune,
 }: SyncOptions): SyncResult => {
   mkdirSync(root, { recursive: true });
   const temporaryRepository = mkdtempSync(join(root, '.dang-ai-workflow-'));
@@ -86,6 +92,7 @@ export const syncWorkflow = ({
 
     const targetClaudeDirectory = join(root, '.claude');
     let filesCopied = 0;
+    const pruned: string[] = [];
 
     for (const directory of directories) {
       const sourceDirectory = join(temporaryRepository, '.claude', directory);
@@ -95,37 +102,81 @@ export const syncWorkflow = ({
         );
       }
 
-      filesCopied += copyDirectory(
+      const change = syncDirectory(
         sourceDirectory,
         join(targetClaudeDirectory, directory),
+        { dryRun, prune },
       );
+      filesCopied += change.copied.length;
+      pruned.push(...change.pruned.map(file => `.claude/${directory}/${file}`));
     }
 
-    return { commit: resolvedCommit, filesCopied, directories };
+    return { commit: resolvedCommit, dryRun, filesCopied, pruned, directories };
   } finally {
     rmSync(temporaryRepository, { recursive: true, force: true });
   }
 };
 
-const copyDirectory = (source: string, destination: string): number => {
-  mkdirSync(destination, { recursive: true });
-  let filesCopied = 0;
+type DirectoryChange = { copied: string[]; pruned: string[] };
 
-  for (const entry of readdirSync(source, { withFileTypes: true })) {
-    const sourcePath = join(source, entry.name);
-    const destinationPath = join(destination, entry.name);
+// Copies every upstream file onto `destination`. With `prune`, also removes
+// downstream files (and the directories left empty) that upstream no longer
+// ships, so synced repos stay convergent instead of accumulating retired files.
+const syncDirectory = (
+  source: string,
+  destination: string,
+  { dryRun, prune }: { dryRun: boolean; prune: boolean },
+): DirectoryChange => {
+  const copied = listFiles(source);
+  const upstream = new Set(copied);
+  const pruned = prune
+    ? (existsSync(destination) ? listFiles(destination) : []).filter(
+        file => !upstream.has(file),
+      )
+    : [];
 
-    if (entry.isDirectory()) {
-      filesCopied += copyDirectory(sourcePath, destinationPath);
-    } else if (entry.isFile()) {
-      copyFileSync(sourcePath, destinationPath);
-      filesCopied += 1;
-    } else {
-      throw new Error(`Unsupported upstream entry: ${sourcePath}`);
+  if (!dryRun) {
+    for (const file of copied) {
+      const destinationPath = join(destination, file);
+      mkdirSync(dirname(destinationPath), { recursive: true });
+      copyFileSync(join(source, file), destinationPath);
     }
+    for (const file of pruned) {
+      rmSync(join(destination, file));
+    }
+    if (prune) pruneEmptyDirectories(destination);
   }
 
-  return filesCopied;
+  return { copied, pruned };
+};
+
+// Relative POSIX paths of every file under `directory`, recursively.
+const listFiles = (directory: string, base: string = directory): string[] => {
+  const files: string[] = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...listFiles(entryPath, base));
+    } else if (entry.isFile()) {
+      files.push(relative(base, entryPath).replace(/\\/g, '/'));
+    } else {
+      throw new Error(`Unsupported entry: ${entryPath}`);
+    }
+  }
+  return files;
+};
+
+// Removes empty subdirectories left behind by pruning, keeping `root` itself.
+const pruneEmptyDirectories = (root: string): void => {
+  if (!existsSync(root)) return;
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const child = join(root, entry.name);
+    pruneEmptyDirectories(child);
+    if (readdirSync(child, { withFileTypes: true }).length === 0) {
+      rmSync(child, { recursive: true, force: true });
+    }
+  }
 };
 
 const runGit = (repository: string, args: string[]): string => {
@@ -144,6 +195,8 @@ const runGit = (repository: string, args: string[]): string => {
 const parseArgs = (argv: string[]): ParsedArgs => {
   let commit = 'main';
   let root = process.cwd();
+  let dryRun = false;
+  let prune = false;
   const directories: WorkflowDirectory[] = [];
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -151,6 +204,10 @@ const parseArgs = (argv: string[]): ParsedArgs => {
     if (arg === '--commands' || arg === '--scripts') {
       const directory = arg.slice(2) as WorkflowDirectory;
       if (!directories.includes(directory)) directories.push(directory);
+    } else if (arg === '--dry-run') {
+      dryRun = true;
+    } else if (arg === '--prune') {
+      prune = true;
     } else if (arg === '--commit') {
       const value = argv[i + 1];
       if (value === undefined) {
@@ -177,7 +234,7 @@ const parseArgs = (argv: string[]): ParsedArgs => {
     };
   }
 
-  return { ok: true, options: { root, commit, directories } };
+  return { ok: true, options: { root, commit, directories, dryRun, prune } };
 };
 
 const main = (): void => {
@@ -185,7 +242,7 @@ const main = (): void => {
   if (!args.ok) {
     console.error(args.message);
     console.error(
-      'Usage: node .claude/scripts/sync-workflow.ts (--commands | --scripts) [--commit REF] [--root PATH]',
+      'Usage: node .claude/scripts/sync-workflow.ts (--commands | --scripts) [--commit REF] [--root PATH] [--prune] [--dry-run]',
     );
     process.exit(2);
   }
@@ -195,9 +252,13 @@ const main = (): void => {
     const directories = result.directories
       .map(directory => `.claude/${directory}`)
       .join(' and ');
+    const summary = result.dryRun ? '[dry-run] Would sync' : 'Synced';
     console.log(
-      `Synced ${directories} from ${result.commit} (${result.filesCopied} files).`,
+      `${summary} ${directories} from ${result.commit} (${result.filesCopied} files, ${result.pruned.length} pruned).`,
     );
+    for (const file of result.pruned) {
+      console.log(`  ${result.dryRun ? 'would remove' : 'removed'} ${file}`);
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Unable to sync workflow files: ${message}`);
