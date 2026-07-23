@@ -9,10 +9,13 @@ export const parseDecisions = (
   const errors: ParseIssue[] = [];
   for (const [index, line] of section.body.split('\n').entries()) {
     if (line.trim() === '') continue;
-    const m =
-      line.match(
-        /^-\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+\[(.+)\]\s+\[(user-confirmed)\]\s*$/,
-      ) ?? line.match(/^-\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+\[(.+)\]\s*$/);
+    // `step` and `choice` are bracket-free; `why` may embed nested bracket
+    // pairs (e.g. a `[CF1]` conflict reference) but is a single top-level
+    // group, so the only bracket group permitted after it is `[user-confirmed]`.
+    // A stray trailing tag such as `[reviewed]` cannot be absorbed into `why`.
+    const m = line.match(
+      /^-\s+\[([^\]]+)\]\s+\[([^\]]+)\]\s+\[((?:[^\[\]]|\[[^\[\]]*\])+)\](?:\s+\[(user-confirmed)\])?\s*$/,
+    );
     if (!m) {
       errors.push({
         code: 'decision-line-unparseable',
