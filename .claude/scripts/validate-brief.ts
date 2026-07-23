@@ -1,4 +1,4 @@
-import { copyFileSync } from 'node:fs';
+import { copyFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseBrief } from './lib/parse-brief.ts';
@@ -75,7 +75,7 @@ export const validateBrief = (
 
 type OutputFormat = 'text' | 'json';
 
-type CliMode = 'validate' | 'next' | 'list-invariants';
+type CliMode = 'validate' | 'next' | 'list-invariants' | 'restore';
 
 type CliArgs = {
   mode: CliMode;
@@ -120,6 +120,11 @@ const main = (): void => {
     console.error('Missing workspace path.');
     console.error(usage());
     process.exit(2);
+  }
+
+  if (mode === 'restore') {
+    restoreFromSnapshot(workspace);
+    process.exit(0);
   }
 
   let brief: ParsedBrief;
@@ -195,6 +200,32 @@ const main = (): void => {
   process.exit(result.ok ? 0 : 1);
 };
 
+// Overwrites brief.md with the validator-owned last-valid snapshot, the
+// recovery path phase.md prescribes when a phase leaves brief.md unrepairable.
+const restoreFromSnapshot = (workspace: string): void => {
+  const snapshotPath = `${workspace}/${LAST_VALID_SNAPSHOT}`;
+  const briefPath = `${workspace}/brief.md`;
+
+  if (!existsSync(snapshotPath)) {
+    console.error(
+      `No ${LAST_VALID_SNAPSHOT} in ${workspace}; brief.md must pass validation once before it can be restored.`,
+    );
+    process.exit(2);
+  }
+
+  try {
+    copyFileSync(snapshotPath, briefPath);
+  } catch (err) {
+    console.error(
+      `Failed to restore ${briefPath} from ${LAST_VALID_SNAPSHOT}:`,
+      err instanceof Error ? err.message : err,
+    );
+    process.exit(2);
+  }
+
+  console.log(`Restored ${briefPath} from ${LAST_VALID_SNAPSHOT}.`);
+};
+
 const parseCliArgs = (argv: string[]): CliParseResult => {
   let mode: CliMode = 'validate';
   let format: OutputFormat = 'text';
@@ -214,6 +245,11 @@ const parseCliArgs = (argv: string[]): CliParseResult => {
 
     if (arg === '--list-invariants') {
       mode = 'list-invariants';
+      continue;
+    }
+
+    if (arg === '--restore') {
+      mode = 'restore';
       continue;
     }
 
@@ -267,6 +303,14 @@ const parseCliArgs = (argv: string[]): CliParseResult => {
     };
   }
 
+  if (mode === 'restore' && positional[1] !== undefined) {
+    return {
+      ok: false,
+      message:
+        '--restore restores the last valid brief and does not accept [before-phase].',
+    };
+  }
+
   const beforePhase = positional[1];
   if (beforePhase !== undefined && !PHASES.includes(beforePhase as Phase)) {
     return {
@@ -294,6 +338,7 @@ const usage = (): string =>
     '  node .claude/scripts/validate-brief.ts [--format text|json] <workspace-path> [before-phase]',
     '  node .claude/scripts/validate-brief.ts --next [--format text|json] <workspace-path>',
     '  node .claude/scripts/validate-brief.ts --list-invariants [--format text|json]',
+    '  node .claude/scripts/validate-brief.ts --restore <workspace-path>',
   ].join('\n');
 
 const isCliEntrypoint = (): boolean => {

@@ -24,7 +24,11 @@ Write when the phase runs:
 
 After all writes, validate brief.md. Do not consider the phase complete until validation passes.
 
-If validation fails and the state cannot be repaired, restore brief.md from .brief.last-valid.md
+If validation fails and the state cannot be repaired, restore brief.md from the last valid snapshot:
+
+    node .claude/scripts/validate-brief.ts --restore <workspace>
+
+This overwrites brief.md with .brief.last-valid.md and discards the unrepairable state.
 
 Output:
 - Phase-specific output

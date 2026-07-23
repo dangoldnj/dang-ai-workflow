@@ -14,15 +14,17 @@ node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug> 70-implement
 node .claude/scripts/validate-brief.ts --format json thoughts/shared/work/<slug>
 node .claude/scripts/validate-brief.ts --next thoughts/shared/work/<slug>
 node .claude/scripts/validate-brief.ts --list-invariants
+node .claude/scripts/validate-brief.ts --restore thoughts/shared/work/<slug>
 node .claude/scripts/migrate-brief.ts --write thoughts/shared/work/<slug>
 ```
 
 `--json` is accepted as an alias for `--format json`.
 
+`--restore` overwrites `brief.md` with the validator-owned `.brief.last-valid.md` snapshot and discards the current state. Use it only when a phase leaves `brief.md` in an unrepairable state; it fails if no snapshot exists yet.
+
 ## Workflow Sync
 
-Copy a selected upstream workflow directory into the current repository's
-`.claude` directory:
+Copy a selected upstream workflow directory into the current repository's `.claude` directory:
 
 ```bash
 node .claude/scripts/sync-workflow.ts --commands
@@ -30,12 +32,9 @@ node .claude/scripts/sync-workflow.ts --scripts --commit 7438941
 node .claude/scripts/sync-workflow.ts --commands --scripts --root /path/to/repo --commit v1.2.0
 ```
 
-At least one of `--commands` or `--scripts` is required. Pass both flags when
-both directories should be updated.
+At least one of `--commands` or `--scripts` is required. Pass both flags when both directories should be updated.
 The default source is the `main` branch of the upstream workflow repository.
-`--commit` accepts any Git ref available from that repository, including a
-branch, tag, or commit SHA. The script overwrites matching files but does not
-delete additional files already present in the destination directories.
+`--commit` accepts any Git ref available from that repository, including a branch, tag, or commit SHA. The script overwrites matching files but does not delete additional files already present in the destination directories.
 
 ## Validator Exit Codes
 
@@ -53,11 +52,7 @@ node .claude/scripts/summarize-briefs.ts --json
 node .claude/scripts/summarize-briefs.ts --verbose
 ```
 
-The report requires `thoughts/shared/work` and `thoughts/shared` beneath the
-selected root. It summarizes shared artifacts first, then puts the active-brief
-summary and open-brief details at the end. Promoted briefs list only their slug
-and close date by default; `--verbose` includes their summaries. Shared
-artifacts are counted under `thoughts/shared/{briefs,research,discussions,plans}`.
+The report requires `thoughts/shared/work` and `thoughts/shared` beneath the selected root. It summarizes shared artifacts first, then puts the active-brief summary and open-brief details at the end. Promoted briefs list only their slug and close date by default; `--verbose` includes their summaries. Shared artifacts are counted under `thoughts/shared/{briefs,research,discussions,plans}`.
 
 ## Brief Summary Exit Codes
 
