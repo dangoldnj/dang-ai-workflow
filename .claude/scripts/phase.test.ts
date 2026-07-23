@@ -365,7 +365,7 @@ test('50-plan precheck requires a confirmed approach Decision', t => {
     },
     { beforePhase: '50-plan', workspacePath: true },
   );
-  assert.equal(missing.ok, true);
+  assert.equal(missing.ok, false);
   assertHasInvariant(missing, 'plan-without-approach-decision');
 
   const unconfirmed = parseAndValidate(
@@ -379,7 +379,7 @@ test('50-plan precheck requires a confirmed approach Decision', t => {
     },
     { beforePhase: '50-plan', workspacePath: true },
   );
-  assert.equal(unconfirmed.ok, true);
+  assert.equal(unconfirmed.ok, false);
   assertHasInvariant(unconfirmed, 'plan-without-confirmed-approach');
 
   const confirmed = parseAndValidate(
@@ -400,9 +400,7 @@ test('50-plan precheck requires a confirmed approach Decision', t => {
   );
   assert.equal(confirmed.ok, true);
   assert.deepEqual(
-    confirmed.violations.filter(v =>
-      v.invariant.startsWith('plan-without-'),
-    ),
+    confirmed.violations.filter(v => v.invariant.startsWith('plan-without-')),
     [],
   );
 });

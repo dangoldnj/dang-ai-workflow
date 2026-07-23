@@ -1,5 +1,5 @@
 import type { DecisionEntry, ParsedBrief } from '../types.ts';
-import { validationWarning } from './common.ts';
+import { validationError } from './common.ts';
 import type { ValidationViolation } from './types.ts';
 
 export const checkApproachConfirmation = (
@@ -11,7 +11,7 @@ export const checkApproachConfirmation = (
 
   if (approachDecisions.length === 0) {
     return [
-      validationWarning(
+      validationError(
         'plan-without-approach-decision',
         '50-plan is running without a 30-discuss approach Decision',
         'Decisions',
@@ -24,7 +24,7 @@ export const checkApproachConfirmation = (
   }
 
   return [
-    validationWarning(
+    validationError(
       'plan-without-confirmed-approach',
       '50-plan is running without a user-confirmed 30-discuss approach Decision',
       'Decisions',
