@@ -54,6 +54,10 @@ declare module 'node:fs' {
   ) => void;
 }
 
+declare module 'node:os' {
+  export const tmpdir: () => string;
+}
+
 declare module 'node:path' {
   export const dirname: (path: string) => string;
   export const join: (...paths: string[]) => string;
