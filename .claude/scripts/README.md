@@ -6,6 +6,8 @@
 
 Use Node `>=22.18.0`. The scripts rely on Node's native TypeScript type stripping for `.ts` files.
 
+If your Node is too old to strip types at all, invoking a script fails immediately with an error like `TypeError: Unknown file extension ".ts"` or `ERR_UNKNOWN_FILE_EXTENSION` - that message means "upgrade Node," not a bug in the script. On Node 22.6-22.17, type stripping exists behind a flag; without it, or on any version below 22.18.0, scripts run through `main()` (`validate-brief.ts`, `migrate-brief.ts`) will instead print a clear "requires Node >= 22.18.0" message before failing. The `PostToolUse` hook (`hooks/validate-brief-post-tool-use.cjs`) checks the Node version itself before spawning the validator, since it is plain `.cjs` and runs on any Node version.
+
 ## Usage
 
 ```bash
@@ -30,11 +32,14 @@ Copy a selected upstream workflow directory into the current repository's `.clau
 node .claude/scripts/sync-workflow.ts --commands
 node .claude/scripts/sync-workflow.ts --scripts --commit 7438941
 node .claude/scripts/sync-workflow.ts --commands --scripts --root /path/to/repo --commit v1.2.0
+node .claude/scripts/sync-workflow.ts --commands --prune
+node .claude/scripts/sync-workflow.ts --commands --prune --dry-run
 ```
 
 At least one of `--commands` or `--scripts` is required. Pass both flags when both directories should be updated.
 The default source is the `main` branch of the upstream workflow repository.
-`--commit` accepts any Git ref available from that repository, including a branch, tag, or commit SHA. The script overwrites matching files but does not delete additional files already present in the destination directories.
+`--commit` accepts any Git ref available from that repository, including a branch, tag, or commit SHA. By default the script overwrites matching files but does not delete additional files already present in the destination directories.
+`--prune` also deletes downstream files (and any directories left empty) that the upstream commit no longer ships, so the destination directories stay convergent with upstream. `--dry-run` previews what would be copied and pruned without writing anything; combine it with `--prune` to preview deletions.
 
 ## Validator Exit Codes
 
