@@ -4,7 +4,6 @@
       "Bash(git checkout -b *)",
       "Bash(git status)",
       "Bash(git diff *)",
-      "Bash(npx tsc *)",
       "Bash(node .claude/scripts/*)"
     ]
   }
