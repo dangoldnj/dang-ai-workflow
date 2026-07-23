@@ -198,6 +198,41 @@ test('next action routes completed rework back to 80-verify', t => {
   );
 });
 
+test('next action routes rework recorded as [ran: <step>] back to 80-verify', t => {
+  assert.deepEqual(
+    getNextWorkflowAction(
+      parseFixture(t, {
+        frontmatter: {
+          status: 'in-progress',
+          current_phase: '80-verify',
+        },
+        plan: [{ text: 'Implement validator tests', checked: true }],
+        // Only the [ran: S3] entry follows the stale [80-verify] [ran] from
+        // ranDecisionsThrough. If the router falls back to exact `=== 'ran'`
+        // matching, it skips this entry and (wrongly) treats the earlier
+        // [80-verify] [ran] as the latest rework-loop run, routing back to
+        // 60-prep instead of forward to 80-verify.
+        decisions: [
+          ...ranDecisionsThrough('80-verify'),
+          '- [70-implement] [ran: S3] [Reworked step 3]',
+        ],
+        progress: [{ step: 'Implement validator tests' }],
+        verification: {
+          status: 'fail',
+          automatedChecks: 'failed',
+          manualVerification: 'confirmed',
+        },
+        outputs: outputsThrough('80-verify'),
+      }),
+    ),
+    {
+      kind: 'phase',
+      phase: '80-verify',
+      reason: 'All Plan items are checked',
+    },
+  );
+});
+
 test('next action stops for terminal or blocked statuses', t => {
   assert.deepEqual(
     getNextWorkflowAction(
