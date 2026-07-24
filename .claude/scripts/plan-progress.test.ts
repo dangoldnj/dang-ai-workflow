@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertHasInvariant } from './test-support/assertions.ts';
 import {
@@ -51,6 +52,29 @@ test('Progress records must be internally consistent', t => {
   assertHasInvariant(result, 'progress-complete-with-manual-needed');
   assertHasInvariant(result, 'progress-complete-with-failed-checks');
   assertHasInvariant(result, 'progress-checks-passed-mismatch');
+});
+
+test('complete Progress records may defer manual verification', t => {
+  const result = parseAndValidate(t, {
+    plan: [{ text: 'Defer manual verification', checked: true }],
+    progress: [
+      {
+        step: 'Defer manual verification',
+        status: 'complete',
+        automatedChecks: 'passed',
+        manualVerification: 'deferred',
+      },
+    ],
+  });
+
+  assert.equal(
+    result.violations.some(
+      violation =>
+        violation.invariant === 'manual-verification-invalid' ||
+        violation.invariant === 'progress-complete-with-manual-needed',
+    ),
+    false,
+  );
 });
 
 test('Plan and Acceptance Criteria items require stable unique IDs', t => {

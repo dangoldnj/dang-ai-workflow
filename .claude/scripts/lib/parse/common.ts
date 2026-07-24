@@ -87,10 +87,11 @@ const formatAllowedValues = (values: readonly AutomatedCheckValue[]): string => 
 export const parseManual = (
   s: string,
   location: string,
-): ParseResult<'needed' | 'not-needed' | 'confirmed'> => {
+): ParseResult<'needed' | 'not-needed' | 'confirmed' | 'deferred'> => {
   const v = s.toLowerCase().trim();
   if (v === 'confirmed') return { value: 'confirmed', errors: [] };
   if (v === 'needed') return { value: 'needed', errors: [] };
+  if (v === 'deferred') return { value: 'deferred', errors: [] };
   if (v === 'not needed' || v === 'not-needed') {
     return { value: 'not-needed', errors: [] };
   }
@@ -99,7 +100,7 @@ export const parseManual = (
     errors: [
       {
         code: 'manual-verification-invalid',
-        message: `Manual verification must be needed, not needed, or confirmed; got: ${s || 'missing'}`,
+        message: `Manual verification must be needed, not needed, confirmed, or deferred; got: ${s || 'missing'}`,
         location,
       },
     ],

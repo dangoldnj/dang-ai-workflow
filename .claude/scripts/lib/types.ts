@@ -57,7 +57,7 @@ export type ProgressRecord = {
   step: string;
   status: StepStatus;
   automatedChecks: 'passed' | 'failed' | 'not-run';
-  manualVerification: 'needed' | 'not-needed' | 'confirmed';
+  manualVerification: 'needed' | 'not-needed' | 'confirmed' | 'deferred';
   notes: string;
   raw: string;
 };

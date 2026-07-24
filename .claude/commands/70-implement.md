@@ -69,6 +69,6 @@ Status: [step status]
 Automated checks:
 - [passed/failed/not run]
 Manual verification:
-- [needed/not needed/confirmed]
+- [needed/not needed/confirmed/deferred]
 Notes:
 - [anything relevant]

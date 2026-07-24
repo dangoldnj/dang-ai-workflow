@@ -48,7 +48,7 @@ export type ProgressFixture = {
     | 'manual-verification-needed'
     | 'complete';
   automatedChecks?: 'passed' | 'failed' | 'not-run';
-  manualVerification?: 'needed' | 'not-needed' | 'confirmed';
+  manualVerification?: 'needed' | 'not-needed' | 'confirmed' | 'deferred';
   notes?: string[];
 };
 
