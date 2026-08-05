@@ -4,7 +4,7 @@
 
 Invoke `run-workflow` with a task description (or a reference to an existing plan or spec). The command creates a workspace and writes the initial brief.
 
-After init, run phases in pipeline order. Each phase decides whether its work is needed for this task. Phases that skip record a Decision and advance to the next phase.
+After init, run `continue` to pick up where you left off. The command routes to the correct next phase, and self-gating phases decide whether their work is needed for this task. Phases that skip record a Decision and advance to the next phase.
 
 ## Pipeline order
 
@@ -19,6 +19,13 @@ If 80-verify fails, do not jump directly to close. The rework loop is:
 ```
 
 The validator `--next` result is authoritative when resuming a workspace.
+
+Implementation progress may mark a plan step's manual verification as `deferred` when confirmation cannot yet occur. Before 80-verify can pass with deferred manual verification, record the rationale in Decisions using `[80-verify] [defer manual verification] [rationale]`.
+
+## Supporting commands
+
+- `continue.md` resumes a workspace by validating and following the router's next result.
+- `explain-diff.md` creates a self-contained interactive HTML explanation of a code change, diff, branch, or pull request.
 
 ## Formats
 
@@ -64,6 +71,10 @@ When a workflow closes successfully, 90-close promotes durable artifacts to shar
 These accumulate over time and form the long-term record of what was built and what was decided. Search them via grep:
 
     grep -r "auth flow" thoughts/shared/
+
+Or use the human-readable summary script:
+
+    node .claude/scripts/summarize-briefs.ts
 
 The active workspace (thoughts/shared/work/<slug>/) remains the complete record of how a workflow proceeded. The promoted artifacts are an index optimized for discovery, not a replacement.
 
