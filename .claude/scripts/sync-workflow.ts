@@ -8,6 +8,7 @@ import {
 } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { requireNodeVersion } from './lib/require-node-version.ts';
 
 const UPSTREAM_REPOSITORY = 'https://github.com/dangoldnj/dang-ai-workflow.git';
 const WORKFLOW_DIRECTORIES = ['commands', 'scripts'] as const;
@@ -238,6 +239,7 @@ const parseArgs = (argv: string[]): ParsedArgs => {
 };
 
 const main = (): void => {
+  requireNodeVersion();
   const args = parseArgs(process.argv.slice(2));
   if (!args.ok) {
     console.error(args.message);

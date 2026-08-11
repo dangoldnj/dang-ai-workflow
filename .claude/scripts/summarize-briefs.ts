@@ -6,6 +6,7 @@ import {
 } from './lib/brief-summary/collect.ts';
 import { formatBriefReport } from './lib/brief-summary/format.ts';
 import type { BriefReport, CliArgs } from './lib/brief-summary/types.ts';
+import { requireNodeVersion } from './lib/require-node-version.ts';
 
 const REPOSITORY_ROOT = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -17,6 +18,7 @@ export const summarizeBriefs = (
 ): BriefReport => createBriefReport(repositoryRoot);
 
 const main = (): void => {
+  requireNodeVersion();
   const args = parseArgs(process.argv.slice(2));
   if (!args.ok) {
     console.error(args.message);
