@@ -1,9 +1,17 @@
-node_modules/
-.next/
+# Personal Claude Code overrides
+.claude/settings.local.json
+
+# Workflow runtime artifacts
+.brief.last-valid.md
+.dang-ai-workflow-*
+
+# Environment and secrets
 .env
 .env.local
-*.log
+
+# OS and editor noise
 .DS_Store
-dist/
-.turbo/
-migration/
+*.log
+
+# Dependencies - the scripts are dependency-free, but npx can still create this
+node_modules/

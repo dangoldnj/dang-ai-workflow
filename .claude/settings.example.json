@@ -11,5 +11,14 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git checkout -b *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(node .claude/scripts/validate-brief.ts *)",
+      "Bash(node .claude/scripts/migrate-brief.ts *)"
+    ]
   }
 }
