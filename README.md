@@ -20,20 +20,30 @@ It provides:
 
 ## Quick Start
 
-The included scripts require Node >= 22.18.
+> [!IMPORTANT]
+> The included scripts require Node `>=22.18`.
 
-**Installation**
+### Installation
 
 Copy the `.claude/` directory to the project root. For agents that read `AGENTS.md`, also copy the root-level `AGENTS.md` helper; it delegates to `.claude/CLAUDE.md`.
 
 Alternatively, install once into a shared environment directory (e.g. `~/my-projects`) and open all your repos inside a single Cursor workspace - the workflow commands will be available across all of them.
 
-**Workflow documentation**
+### Updating an installed copy
 
-- [Commands reference](.claude/commands/README.md): workflow phases, routing, resumptions, and command behavior.
-- [Scripts reference](.claude/scripts/README.md): validation, migration, recovery, summaries, hooks, and in-place synchronization.
+Once installed, `sync-workflow.ts` pulls newer workflow files from upstream in place, so you do not have to re-copy directories by hand:
 
-**Starting a new task**
+```bash
+# preview what would change
+node .claude/scripts/sync-workflow.ts --commands --scripts --dry-run
+
+# apply the update, dropping files upstream no longer ships
+node .claude/scripts/sync-workflow.ts --commands --scripts --prune
+```
+
+Pass `--commit` to pin to a specific commit instead of tracking upstream `main`, and `--root` to update a repository other than the current one. `--prune` deletes downstream files, so preview with `--dry-run` before the first pruning sync in a repo. See the [scripts reference](.claude/scripts/README.md#workflow-sync) for the full flag list.
+
+### Starting a new task
 
 ```
 execute .claude/commands/run-workflow.md
@@ -45,14 +55,19 @@ task: [ticket url]
 
 Let the context window fill to roughly 60-80% before moving on, or start a new thread if you think the next phase would benefit from a fresh context window.
 
-**Continuing an existing task in a new thread**
+### Continuing in a new thread
 
 ```
 execute .claude/commands/continue.md
 slug: [workflow slug]
 ```
 
-The workflow automatically builds a shared knowledge base upon completion of each workflow run, stored under `thoughts/shared/` - see "Generated at runtime", below.
+The workflow automatically builds a shared knowledge base upon completion of each workflow run, stored under `thoughts/shared/` - see [Generated at runtime](#generated-at-runtime), below.
+
+### Workflow documentation
+
+- [Commands reference](.claude/commands/README.md): workflow phases, routing, resumptions, and command behavior.
+- [Scripts reference](.claude/scripts/README.md): validation, migration, recovery, summaries, hooks, and in-place synchronization.
 
 ---
 
@@ -88,17 +103,31 @@ The workflow treats plans, decisions, implementation progress, and verification 
 
 ## Repository Structure
 
+### In the repository
+
 ```
 .claude/
   CLAUDE.md                       # Root agent directives (role, rules, environment, style)
   settings.example.json           # PostToolUse validator-hook configuration (optional)
   commands/                       # Workflow phases, helpers, formats, and command reference
-  scripts/                        # Workflow tooling, hooks, and scripts reference
+    formats/                      # Brief, phase, and presentation contracts
+    legacy/                       # Retired command set, kept for reference only
+  scripts/                        # Workflow tooling and scripts reference
+    validate-brief.ts             # Structural validator and phase router
+    migrate-brief.ts              # Brief format migration
+    summarize-briefs.ts           # Report on active work and promoted artifacts
+    sync-workflow.ts              # In-place update from upstream
+    hooks/                        # PostToolUse hook helper (.cjs, runs on any Node)
+    lib/                          # Parsing, validation, and reporting internals
+    *.test.ts                     # Node test-runner suites
+.github/workflows/ci.yml          # Type-check and test on push and pull request
 AGENTS.md                         # One-liner: delegates to .claude/CLAUDE.md (optional)
 LICENSE                           # Apache-2.0
 ```
 
-**Generated at runtime** (not in repo, created per-project):
+### Generated at runtime
+
+Not in the repository; created per-project.
 
 ```
 thoughts/
@@ -128,7 +157,7 @@ node .claude/scripts/summarize-briefs.ts
 
 This is an actively evolving workflow used in production. Rough edges being worked on:
 
-- **Scratch file retention**: canonical phase scratch files such as `60-prep.md` represent the current phase state and may be overwritten. If per-step prep history is useful, archive copies such as `60-prep.<step-id>.md`; keep `60-prep.md` current so validator checks remain deterministic.
+- **Scratch file retention**: canonical phase scratch files such as `60-prep.md` represent the current phase state and may be overwritten. `60-prep.md` must stay current for validator checks to remain deterministic, so per-step history is best preserved alongside it - archive copies such as `60-prep.<step-id>.md` if that history is useful to you.
 - **Git authorization**: the agent can be zealous with commits. If you intend to use `commits_authorized: true`, add additional context comments to constrain this as desired.
 
 ---
