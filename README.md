@@ -95,6 +95,7 @@ The workflow treats plans, decisions, implementation progress, and verification 
   commands/                       # Workflow phases, helpers, formats, and command reference
   scripts/                        # Workflow tooling, hooks, and scripts reference
 AGENTS.md                         # One-liner: delegates to .claude/CLAUDE.md (optional)
+LICENSE                           # Apache-2.0
 ```
 
 **Generated at runtime** (not in repo, created per-project):
@@ -134,6 +135,6 @@ This is an actively evolving workflow used in production. Rough edges being work
 
 ## License
 
-This work is licensed under the Creative Commons Attribution 4.0 International License.
+Licensed under the Apache License, Version 2.0.
 
-See the `LICENSE` file for details.
+Copyright 2026 Daniel Goldshlack. See the [LICENSE](LICENSE) file for the full terms.
