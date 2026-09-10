@@ -16,7 +16,9 @@ export const formatBriefReport = (
     'Promoted briefs:',
   ];
 
-  const promotedBriefs = report.shared.filter((file) => file.type === 'briefs');
+  const promotedBriefs = report.shared
+    .filter((file) => file.type === 'briefs')
+    .reverse();
   if (promotedBriefs.length === 0) {
     lines.push('  (none)');
   } else {
