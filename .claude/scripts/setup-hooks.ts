@@ -19,6 +19,7 @@ export type SetupOptions = {
   root: string;
   write: boolean;
   local: boolean;
+  permissions: boolean;
 };
 
 export type SetupResult =
@@ -26,6 +27,7 @@ export type SetupResult =
       ok: true;
       targetPath: string;
       missing: HookSpec[];
+      missingPermissions: string[];
       written: boolean;
     }
   | { ok: false; message: string };
@@ -42,6 +44,18 @@ export const WORKFLOW_HOOKS: HookSpec[] = [
     matcher: 'Write|Edit|MultiEdit',
     command: 'node .claude/scripts/hooks/validate-brief-post-tool-use.cjs',
   },
+];
+
+// Permission allowlist entries for the commands the workflow runs. Optional:
+// autopilot requires only the hooks, so these are checked only with
+// --permissions.
+export const WORKFLOW_PERMISSIONS: string[] = [
+  'Bash(git checkout -b *)',
+  'Bash(git status)',
+  'Bash(git diff *)',
+  'Bash(node .claude/scripts/validate-brief.ts *)',
+  'Bash(node .claude/scripts/migrate-brief.ts *)',
+  'Bash(node .claude/scripts/setup-hooks.ts)',
 ];
 
 const SETTINGS_FILE = 'settings.json';
@@ -73,6 +87,27 @@ export const addHooks = (settings: Settings, hooks: HookSpec[]): Settings => {
   return { ...settings, hooks: mergedHooks };
 };
 
+export const isPermissionAllowed = (
+  settings: Settings,
+  permission: string,
+): boolean => allowList(settings).includes(permission);
+
+export const addPermissions = (
+  settings: Settings,
+  permissions: string[],
+): Settings => {
+  if (permissions.length === 0) return settings;
+  const existing = isRecord(settings.permissions) ? settings.permissions : {};
+
+  return {
+    ...settings,
+    permissions: {
+      ...existing,
+      allow: [...allowList(settings), ...permissions],
+    },
+  };
+};
+
 export const setupHooks = (options: SetupOptions): SetupResult => {
   const claudeDir = join(options.root, '.claude');
   const sharedPath = join(claudeDir, SETTINGS_FILE);
@@ -90,19 +125,30 @@ export const setupHooks = (options: SetupOptions): SetupResult => {
       !isHookInstalled(local.settings, hook),
   );
 
-  if (!options.write || missing.length === 0) {
-    return { ok: true, targetPath, missing, written: false };
+  const missingPermissions = options.permissions
+    ? WORKFLOW_PERMISSIONS.filter(
+        permission =>
+          !isPermissionAllowed(shared.settings, permission) &&
+          !isPermissionAllowed(local.settings, permission),
+      )
+    : [];
+
+  if (
+    !options.write ||
+    (missing.length === 0 && missingPermissions.length === 0)
+  ) {
+    return { ok: true, targetPath, missing, missingPermissions, written: false };
   }
 
   const target = options.local ? local.settings : shared.settings;
   mkdirSync(claudeDir, { recursive: true });
   writeFileSync(
     targetPath,
-    `${JSON.stringify(addHooks(target, missing), null, 2)}\n`,
+    `${JSON.stringify(addPermissions(addHooks(target, missing), missingPermissions), null, 2)}\n`,
     'utf8',
   );
 
-  return { ok: true, targetPath, missing, written: true };
+  return { ok: true, targetPath, missing, missingPermissions, written: true };
 };
 
 const readSettings = (
@@ -139,14 +185,23 @@ const entryCommands = (entry: HookEntry): string[] =>
       )
     : [];
 
+const allowList = (settings: Settings): unknown[] => {
+  const permissions = settings.permissions;
+  return isRecord(permissions) && Array.isArray(permissions.allow)
+    ? permissions.allow
+    : [];
+};
+
 const isRecord = (value: unknown): value is Settings =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const formatMissing = (missing: HookSpec[]): string =>
-  JSON.stringify(addHooks({}, missing), null, 2);
+const formatMissing = (missing: HookSpec[], permissions: string[]): string =>
+  JSON.stringify(addPermissions(addHooks({}, missing), permissions), null, 2);
 
 const usage = (): string =>
-  'Usage: node .claude/scripts/setup-hooks.ts [--write] [--local] [--root PATH]';
+  'Usage: node .claude/scripts/setup-hooks.ts [--write] [--local] [--permissions] [--root PATH]';
+
+const FLAGS = ['--write', '--local', '--permissions', '--root'];
 
 const main = (): void => {
   requireNodeVersion();
@@ -155,19 +210,19 @@ const main = (): void => {
   const root = rootIndex === -1 ? process.cwd() : args[rootIndex + 1];
   const flags =
     rootIndex === -1 ? args : args.filter((_, index) => index !== rootIndex + 1);
-  const unknown = flags.filter(
-    arg => arg !== '--write' && arg !== '--local' && arg !== '--root',
-  );
+  const unknown = flags.filter(arg => !FLAGS.includes(arg));
 
   if (root === undefined || unknown.length > 0) {
     console.error(usage());
     process.exit(2);
   }
 
+  const permissions = flags.includes('--permissions');
   const result = setupHooks({
     root: resolve(root),
     write: flags.includes('--write'),
     local: flags.includes('--local'),
+    permissions,
   });
 
   if (!result.ok) {
@@ -175,26 +230,32 @@ const main = (): void => {
     process.exit(2);
   }
 
-  if (result.missing.length === 0) {
-    console.log('Workflow hooks are installed.');
+  const { missing, missingPermissions } = result;
+  if (missing.length === 0 && missingPermissions.length === 0) {
+    console.log(
+      permissions
+        ? 'Workflow hooks and permissions are installed.'
+        : 'Workflow hooks are installed.',
+    );
     return;
   }
 
-  if (result.written) {
-    console.log(`Added workflow hooks to ${result.targetPath}:`);
-    result.missing.forEach(printHook);
-    return;
-  }
+  console.log(
+    result.written
+      ? `Added to ${result.targetPath}:`
+      : 'Missing from workflow settings:',
+  );
+  missing.forEach(hook => console.log(`  ${hook.event}: ${hook.command}`));
+  missingPermissions.forEach(permission =>
+    console.log(`  permission: ${permission}`),
+  );
 
-  console.log('Missing workflow hooks:');
-  result.missing.forEach(printHook);
+  if (result.written) return;
+
   console.log(`\nWould add to ${result.targetPath}:`);
-  console.log(formatMissing(result.missing));
+  console.log(formatMissing(missing, missingPermissions));
   console.log('\nDry run only. Re-run with --write to add them.');
   process.exit(1);
 };
-
-const printHook = (hook: HookSpec): void =>
-  console.log(`  ${hook.event}: ${hook.command}`);
 
 if (import.meta.main) main();
