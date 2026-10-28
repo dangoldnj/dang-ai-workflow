@@ -41,7 +41,7 @@ brief.md is canonical for step status. 70-implement.md is scratch only.
 - If the user confirms manual verification for a step parked at `manual-verification-needed`, rerun 70-implement for the active `current_step` only to record that confirmation and advance or complete the Progress record
 - Trust existing checkmarks when resuming; do not re-verify completed work
 - When completing failed-verification rework, leave the failed Verification record unchanged; 80-verify owns replacing it after rework is implemented
-- After completing one step, stop and report to the user - do not proceed to the next step until the user confirms
+- After completing one step, stop and report to the user - do not proceed to the next step until the user confirms. Under autopilot, report the step and continue.
 
 ## Constraints
 - Stop if the plan conflicts with the code
@@ -51,7 +51,7 @@ brief.md is canonical for step status. 70-implement.md is scratch only.
     Why this matters: [explanation]
 - Do not improvise missing design
 - Do not proceed past the current step
-- Implementing additional steps without rerunning 60-prep and receiving user confirmation is a contract violation
+- Implementing additional steps without rerunning 60-prep and receiving user confirmation is a contract violation. An autopilot invocation is that confirmation; 60-prep must still run for every step.
 
 ## Do not
 - Jump ahead

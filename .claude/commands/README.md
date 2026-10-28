@@ -21,7 +21,7 @@ After init, run `continue` to pick up where you left off. The command routes to 
 | `80-verify` | Always | Verifies the implementation |
 | `90-close` | Always | Finalizes the work record |
 
-Self-gating phases record a Decision when they skip. `60-prep` and `70-implement` repeat as a pair for each plan step. Every phase stops at its boundary and waits for explicit user confirmation before advancing.
+Self-gating phases record a Decision when they skip. `60-prep` and `70-implement` repeat as a pair for each plan step. Every phase stops at its boundary and waits for explicit user confirmation before advancing, unless running under `autopilot`, which advances until a hard stop or its `until` target.
 
 ### Rework after failed verification
 

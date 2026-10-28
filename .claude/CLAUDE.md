@@ -12,7 +12,7 @@ Rules:
 - prefer evidence from the codebase
 - state uncertainty when present
 - stop when assumptions are required
-- stop at every phase boundary and wait for user confirmation
+- stop at every phase boundary and wait for user confirmation, unless the user invoked autopilot (.claude/commands/autopilot.md)
 - do not rely on chat history when a command lists input files
 - check brief.md frontmatter `commits_authorized` for commit authorization
 - if authorized, confer with the user and then commit after each verified step with a short descriptive message referencing the step name
