@@ -29,6 +29,16 @@ Copy the `.claude/` directory to the project root. For agents that read `AGENTS.
 
 Alternatively, install once into a shared environment directory (e.g. `~/my-projects`) and open all your repos inside a single Cursor workspace - the workflow commands will be available across all of them.
 
+Then install the workflow hooks, which validate `brief.md` and preserve overwritten workspace files:
+
+```bash
+# report missing hooks and preview the settings change
+node .claude/scripts/setup-hooks.ts
+
+# add them to .claude/settings.json (or --local for settings.local.json)
+node .claude/scripts/setup-hooks.ts --write
+```
+
 ### Updating an installed copy
 
 Once installed, `sync-workflow.ts` pulls newer workflow files from upstream in place, so you do not have to re-copy directories by hand:
@@ -117,6 +127,7 @@ The workflow treats plans, decisions, implementation progress, and verification 
     migrate-brief.ts              # Brief format migration
     summarize-briefs.ts           # Report on active work and promoted artifacts
     sync-workflow.ts              # In-place update from upstream
+    setup-hooks.ts                # Check and install the workflow hooks
     hooks/                        # Validator and history hook helpers (.cjs, run on any Node)
     lib/                          # Parsing, validation, and reporting internals
     *.test.ts                     # Node test-runner suites
@@ -133,6 +144,7 @@ Not in the repository; created per-project.
 thoughts/
   shared/
     work/<slug>/                  # Active workflow workspace (complete run record)
+      history/                    # Prior versions of overwritten workspace files
     research/<date>-<slug>.md     # Promoted on close
     discussions/<date>-<slug>.md  # Promoted on close
     plans/<date>-<slug>.md        # Promoted on close
@@ -157,7 +169,7 @@ node .claude/scripts/summarize-briefs.ts
 
 This is an actively evolving workflow used in production. Rough edges being worked on:
 
-- **Scratch file retention**: canonical phase scratch files such as `60-prep.md` represent the current phase state and may be overwritten. `60-prep.md` must stay current for validator checks to remain deterministic, so per-step history is best preserved alongside it - archive copies such as `60-prep.<step-id>.md` if that history is useful to you.
+- **Scratch file retention**: canonical phase scratch files such as `60-prep.md` represent the current phase state and are overwritten. The history hook preserves each prior version under `work/<slug>/history/`, but only for writes made through the agent's file tools; shell writes are not archived.
 - **Git authorization**: the agent can be zealous with commits. If you intend to use `commits_authorized: true`, add additional context comments to constrain this as desired.
 
 ---

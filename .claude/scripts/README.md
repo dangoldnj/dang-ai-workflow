@@ -8,6 +8,7 @@ Tooling that supports the workflow commands. Each script is standalone and depen
 | [`migrate-brief.ts`](#brief-migration) | Upgrade old text-keyed briefs to `brief_version: 2` |
 | [`summarize-briefs.ts`](#brief-summary) | Report on active work and promoted artifacts |
 | [`sync-workflow.ts`](#workflow-sync) | Pull upstream `.claude/` updates into this repository |
+| [`setup-hooks.ts`](#hook-setup) | Check that the workflow hooks are installed, and install them |
 
 ## Runtime
 
@@ -189,6 +190,48 @@ The hook:
 
 > [!NOTE]
 > Writes made through Bash (`>`, `sed -i`, `rm`) do not trigger hooks and are not archived.
+
+---
+
+## Hook Setup
+
+`setup-hooks.ts` checks that the validator and history hooks are configured, and adds them on request. Workflow sync updates `commands/` and `scripts/` but never settings, so run this after installing or syncing.
+
+### Usage
+
+```bash
+# report missing hooks and preview the change; writes nothing
+node .claude/scripts/setup-hooks.ts
+
+# add missing hooks to .claude/settings.json
+node .claude/scripts/setup-hooks.ts --write
+
+# add them to .claude/settings.local.json instead
+node .claude/scripts/setup-hooks.ts --write --local
+```
+
+### Flags
+
+| Flag | Effect |
+|---|---|
+| `--write` | Add missing hooks. Without it, the script only reports |
+| `--local` | Target `settings.local.json` instead of `settings.json` |
+| `--root PATH` | Repository to check. Defaults to the current working directory |
+
+### Behavior
+
+- A hook counts as installed when its command appears in either `settings.json` or `settings.local.json`.
+- Only missing hook entries are added. Other settings, hooks, and permissions are preserved, and a rerun changes nothing.
+- The target file is rewritten as 2-space-indented JSON.
+- A settings file that is not valid JSON is never written.
+
+### Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | All hooks are installed, or were just added |
+| `1` | Hooks are missing and `--write` was not given |
+| `2` | Usage error, or a settings file could not be parsed |
 
 ---
 
