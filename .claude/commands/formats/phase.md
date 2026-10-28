@@ -18,7 +18,7 @@ Write when the phase runs:
 - <workspace>/<phase-output-file>.md
 - <workspace>/brief.md (sections declared by the phase)
   Follow format guidelines in: .claude/commands/formats/brief.md
-- <workspace>/brief.md Decisions entry: `[phase] [ran] [phase completed]` (or `[ran: S7]` if it ran Step 7, for example)
+- <workspace>/brief.md Decisions entry: `[phase] [ran] [phase completed]` (or `[ran: S7]` if it ran Step 7, for example). Append it as the phase's last workspace write.
 - <workspace>/brief.md frontmatter `status` (if `not-started`, set to `in-planning`)
 - <workspace>/brief.md frontmatter `current_phase` (set to this phase name only if it is later than the current value)
 
@@ -41,7 +41,7 @@ Output:
 - If findings contradict the brief, follow the conflict protocol in brief.md.
 - Append any newly discovered constraints to brief.md Constraints, tagged with the current phase.
 - If this phase answers an open Unknown, follow the resolution protocol in brief.md: move it to Decisions with a `resolved UK` reference and preserve the original Unknown text in the Decision rationale.
-- Write workspace files only with file write and edit tools, never through shell commands (`>`, `sed -i`, `mv`, `rm`), except the workflow scripts this contract runs. The history and validation hooks run only on tool writes. Never delete or modify files under `<workspace>/history/`.
+- Write workspace files only with file write and edit tools, never through shell commands (`>`, `sed -i`, `mv`, `rm`), except the workflow scripts this contract runs. The history and validation hooks run only on tool writes. Never delete or modify files under `<workspace>/history/` or `<workspace>/.phase-run.json`.
 - Declare expected test failures; never count them. When work intentionally leaves a test failing, mark that test as expected to fail in the test code (e.g. `it.fails`, `test.failing`, `xfail`) so the suite passes. If the framework has no such marker, append a Constraint naming each test by file and test name. "N failures expected" is not a declaration. Remove the declaration in the step that makes the test pass. Any undeclared failure is a real failure.
 - Stop at every phase boundary. Do not auto-advance to the next phase. The user invokes each phase change explicitly. Invoking autopilot is that explicit invocation for each boundary until autopilot stops.
 
@@ -52,6 +52,8 @@ Before running, every phase must execute:
     node .claude/scripts/validate-brief.ts <workspace> <phase-name>
 
 If the validator reports errors, the phase must not run. Report the violations to the user and stop.
+
+A passing precheck starts a new phase run and records it in `<workspace>/.phase-run.json`. Run it once per phase run; each rerun starts another run.
 
 After writing to brief.md, run the universal validator:
 
