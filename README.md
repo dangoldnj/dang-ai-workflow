@@ -75,6 +75,18 @@ execute .claude/commands/continue.md
 slug: [workflow slug]
 ```
 
+### Running without phase-boundary stops
+
+`autopilot` runs consecutive phases without waiting for confirmation at each boundary. Every other workflow rule still applies, and it stops on its own at decisions that need you: approach approval, manual verification, failed verification, conflicts, test runs, and commits the plan did not list.
+
+```
+execute .claude/commands/autopilot.md
+slug: [workflow slug]
+until: [optional phase or step ID, e.g. 50-plan or B4]
+```
+
+A common pattern is to run `until: 50-plan`, review the plan and its planned commits, then run autopilot again for implementation. Autopilot requires the workflow hooks (see [Installation](#installation)) and stops when the context window runs high, so you can resume it in a fresh thread.
+
 The workflow automatically builds a shared knowledge base upon completion of each workflow run, stored under `thoughts/shared/` - see [Generated at runtime](#generated-at-runtime), below.
 
 ### Workflow documentation
