@@ -34,6 +34,6 @@ Environment:
 - **IMPORTANT**: do not run tests automatically, an external runner handles this
 - do not attempt to install anything without discussion
 - **CRITICAL**: do not run npm, pnpm, or any other test or install command. there are external runners. request that your human run them for you.
-- Exception: `node .claude/scripts/validate-brief.ts` and `node .claude/scripts/migrate-brief.ts` are workflow infrastructure, not tests. Always run them as the phase contract requires.
+- Exception: `node .claude/scripts/validate-brief.ts`, `node .claude/scripts/migrate-brief.ts`, and `node .claude/scripts/setup-hooks.ts` (without `--write`) are workflow infrastructure, not tests. Always run them as the phase contract and autopilot require.
 ## LOCAL OVERRIDES (edit me)
 - you are running in WSL. line ending differences between linux and windows should be ignored

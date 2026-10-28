@@ -29,7 +29,7 @@ Copy the `.claude/` directory to the project root. For agents that read `AGENTS.
 
 Alternatively, install once into a shared environment directory (e.g. `~/my-projects`) and open all your repos inside a single Cursor workspace - the workflow commands will be available across all of them.
 
-Then install the workflow hooks, which validate `brief.md` and preserve overwritten workspace files:
+Then install the workflow hooks, which validate `brief.md` and preserve overwritten workspace files. `autopilot` will not start without them:
 
 ```bash
 # report missing hooks and preview the settings change

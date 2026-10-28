@@ -7,6 +7,7 @@ Run consecutive phases without stopping at phase boundaries. Every other rule in
 - Optional target: `until <phase>` (stop after it completes or skips) or `until <step-id>` (stop when its Progress is `complete`)
 
 ## Do
+- Run `node .claude/scripts/setup-hooks.ts`. If it does not exit 0, report its output and stop. Do not run it with `--write`; installing hooks is the user's decision.
 - Read thoughts/shared/work/<slug>/brief.md and .claude/commands/formats/phase.md
 - Repeat:
   - Run `continue` for the slug, stopping wherever it stops

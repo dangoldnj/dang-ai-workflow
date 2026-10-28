@@ -29,7 +29,8 @@
       "Bash(git status)",
       "Bash(git diff *)",
       "Bash(node .claude/scripts/validate-brief.ts *)",
-      "Bash(node .claude/scripts/migrate-brief.ts *)"
+      "Bash(node .claude/scripts/migrate-brief.ts *)",
+      "Bash(node .claude/scripts/setup-hooks.ts)"
     ]
   }
 }
