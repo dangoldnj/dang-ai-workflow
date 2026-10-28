@@ -2,6 +2,8 @@ export const LAST_VALID_SNAPSHOT = '.brief.last-valid.md';
 
 export const PHASE_RUN_FILE = '.phase-run.json';
 
+export const HISTORY_DIR = 'history';
+
 export const BRIEF_VERSION = 2;
 
 export const STEP_ID_PATTERN = /^[A-Za-z][A-Za-z0-9-]*[0-9]+$/;

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import test, { type TestContext } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -25,6 +25,26 @@ test('a passing precheck starts the run after the phase outcomes in Decisions', 
   assert.equal(result.status, 0);
   assert.deepEqual(readPhaseRun(workspace), {
     run: 2,
+    phase: '10-ask-questions',
+  });
+});
+
+test('a first precheck starts after the highest run already archived', t => {
+  const workspace = makeContextDoneWorkspace(t);
+  mkdirSync(join(workspace, 'history', 'notes'), { recursive: true });
+  writeFileSync(
+    join(workspace, 'history', '70-implement.S1.003.md'),
+    'Late write\n',
+    'utf8',
+  );
+  writeFileSync(join(workspace, 'history', 'notes', 'a.004'), 'Notes\n', 'utf8');
+  writeFileSync(join(workspace, 'history', 'notes', 'b.123.002'), 'B\n', 'utf8');
+
+  const result = runValidator(workspace, '10-ask-questions');
+
+  assert.equal(result.status, 0);
+  assert.deepEqual(readPhaseRun(workspace), {
+    run: 5,
     phase: '10-ask-questions',
   });
 });
