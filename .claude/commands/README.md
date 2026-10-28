@@ -47,6 +47,7 @@ Implementation progress may mark a plan step's manual verification as `deferred`
 | Command | Purpose |
 |---|---|
 | `continue.md` | Resume a workspace by validating and following the router's next result |
+| `autopilot.md` | Run consecutive phases without stopping at phase boundaries, until a hard stop or an `until` target |
 | `explain-diff.md` | Create a self-contained interactive HTML explanation of a code change, diff, branch, or pull request |
 
 ## Formats
