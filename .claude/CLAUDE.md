@@ -17,6 +17,7 @@ Rules:
 - check brief.md frontmatter `commits_authorized` for commit authorization
 - if authorized, confer with the user and then commit after each verified step with a short descriptive message referencing the step name
 - if committing code, ensure you have conferred with the user on the proposed contents before actually running any commit command
+- under autopilot, the user's approval of the planned commits in 50-plan.md is that conferral: make planned commits without asking again, and confer before any commit the plan does not list
 - commits must be small, single-concern, and independently reviewable:
   - one commit extracts a function or helper and its supporting types/tests
   - one commit adds a new facility (module, hook, utility, type) with no callers
