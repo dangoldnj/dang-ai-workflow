@@ -133,6 +133,40 @@ test('90-close precheck requires passing verification', t => {
   assertHasInvariant(result, 'close-without-verification-pass');
 });
 
+test('90-close precheck requires a merge after the latest verification', t => {
+  const fixture = (decisions: string[]): WorkspaceFixture => ({
+    frontmatter: {
+      status: 'in-progress',
+      current_phase: '80-verify',
+    },
+    decisions,
+    verification: {
+      status: 'pass',
+      automatedChecks: 'passed',
+      manualVerification: 'confirmed',
+    },
+    outputs: outputsThrough('80-verify'),
+  });
+  const closeCodes = (decisions: string[]) =>
+    parseAndValidate(t, fixture(decisions), {
+      beforePhase: '90-close',
+      workspacePath: true,
+    })
+      .violations.map(violation => violation.invariant)
+      .filter(invariant => invariant.startsWith('close-'));
+
+  assert.deepEqual(closeCodes(ranDecisionsThrough('80-verify')), [
+    'close-without-merge',
+  ]);
+  assert.deepEqual(
+    closeCodes([
+      ...ranDecisionsThrough('80-verify'),
+      '- [90-close] [merged: PR #12] [gh reports MERGED]',
+    ]),
+    [],
+  );
+});
+
 test('60-prep may select rework after failed verification', t => {
   const outputs = outputsThrough('80-verify');
   outputs['60-prep.md'] = 'Selected step: S1\n';

@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import { hasMergeAfterLatestVerification } from '../merge.ts';
 import type { ParsedBrief, Phase } from '../types.ts';
 import { checkApproachConfirmation } from './approach-confirmation.ts';
 import { validationError } from './common.ts';
@@ -205,15 +206,25 @@ const checkVerifyPreconditions = (
 };
 
 const checkClosePreconditions = (brief: ParsedBrief): ValidationViolation[] => {
-  if (brief.sections.Verification?.status === 'pass') {
+  if (brief.sections.Verification?.status !== 'pass') {
+    return [
+      validationError(
+        'close-without-verification-pass',
+        `90-close cannot run because Verification status is ${brief.sections.Verification?.status ?? 'missing'}; expected pass`,
+        'Verification',
+      ),
+    ];
+  }
+
+  if (hasMergeAfterLatestVerification(brief)) {
     return [];
   }
 
   return [
     validationError(
-      'close-without-verification-pass',
-      `90-close cannot run because Verification status is ${brief.sections.Verification?.status ?? 'missing'}; expected pass`,
-      'Verification',
+      'close-without-merge',
+      '90-close cannot run until the work is merged into the default branch; run continue to confirm the merge and record it in Decisions',
+      'Decisions',
     ),
   ];
 };

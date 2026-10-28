@@ -64,6 +64,7 @@ export const COVERED_INVARIANTS = {
     'phase-accounting-non-self-gated-skip',
     'selected-step-not-in-plan',
     'selected-step-current-step-mismatch',
+    'close-without-merge',
     'close-without-verification-pass',
     'phase-accounting-future-phase-decision',
     'phase-accounting-ran-phase-missing-output',

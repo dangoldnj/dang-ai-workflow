@@ -10,6 +10,7 @@ export const INVARIANTS = [
   'automated-checks-missing',
   'automated-checks-too-many-items',
   'blocked-without-conflicts',
+  'close-without-merge',
   'close-without-verification-pass',
   'complete-without-close',
   'complete-without-verification-pass',
