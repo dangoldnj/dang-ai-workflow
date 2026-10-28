@@ -20,6 +20,7 @@ formats/phase.md
 - Assign every Plan item a stable ID in the checkbox text, e.g. `- [ ] [S1] Step title`
 - Use grouped Plan IDs when helpful for larger plans, e.g. `A1`, `A2`, `B1`; IDs must be unique and end with a number
 - Add verification per step
+- List planned commits per step in 50-plan.md: message and contents for each. A step may have several commits; each must follow the commit rules in .claude/CLAUDE.md. Approving the plan approves these commits. Do not add commits to brief.md Plan.
 - List likely files and commands
 - Note any historical files consulted
 - Include what we are not doing
@@ -54,6 +55,7 @@ formats/phase.md
 
 ## Output
 - Steps (in execution order)
+- Planned commits per step
 - Explicit "Not doing" list
 - Files
 - Commands
