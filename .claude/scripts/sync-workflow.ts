@@ -49,7 +49,9 @@ export type ClaudeMdMerge = {
 
 // Replaces the upstream-managed part of CLAUDE.md (everything above the
 // LOCAL OVERRIDES heading) and keeps the local overrides section verbatim.
-// Lines that exist only in the local managed part are reported as dropped.
+// Lines in the local managed part that upstream lacks are reported as dropped.
+// Without the previous upstream version, a local edit and an upstream removal
+// look the same, so both are reported.
 export const mergeClaudeMd = (
   upstream: string,
   local: string | undefined,
@@ -383,7 +385,7 @@ const reportClaudeMd = (
   }
   if (merge.dropped.length > 0) {
     console.error(
-      `WARNING: ${merge.dropped.length} local line(s) above LOCAL OVERRIDES ${dryRun ? 'would be' : 'were'} dropped. Move them under LOCAL OVERRIDES to keep them:`,
+      `WARNING: ${merge.dropped.length} line(s) above LOCAL OVERRIDES are not in upstream and ${dryRun ? 'would be' : 'were'} dropped. These are either your local edits or lines upstream removed. Move any you want to keep under LOCAL OVERRIDES:`,
     );
     for (const line of merge.dropped) {
       console.error(`  ${line}`);

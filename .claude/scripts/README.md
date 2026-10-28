@@ -349,7 +349,7 @@ node .claude/scripts/sync-workflow.ts --commands --scripts --root /path/to/repo 
 
 By default the script overwrites matching files but leaves additional files already present in the destination untouched. `--prune` also removes downstream files, and any directories left empty, that upstream no longer ships, so the destination stays convergent with upstream.
 
-`--claude-md` replaces everything above the `## LOCAL OVERRIDES` heading with upstream's version and keeps the local overrides section verbatim. It warns, listing each line, when local lines above that heading would be dropped, and warns when the local file has no overrides section and is replaced entirely. Preview with `--dry-run`, and move any lines you want to keep under `## LOCAL OVERRIDES` first.
+`--claude-md` replaces everything above the `## LOCAL OVERRIDES` heading with upstream's version and keeps the local overrides section verbatim. It warns, listing each line, when lines above that heading are not in upstream and would be dropped. Those are either your local edits or lines upstream removed; the script cannot tell which. It also warns when the local file has no overrides section and is replaced entirely. Preview with `--dry-run`, and move any lines you want to keep under `## LOCAL OVERRIDES` first.
 
 > [!WARNING]
 > `--prune` deletes files. Combine it with `--dry-run` to preview the deletions
