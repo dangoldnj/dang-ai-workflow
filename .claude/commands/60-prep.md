@@ -30,7 +30,7 @@ If Step selector is "next unchecked step":
   - frontmatter: current_step (set to selected Plan item ID)
   - sections: Plan and Progress, only when reopening a completed step for failed-verification rework
 
-The canonical `60-prep.md` is overwritten for each selected step. If per-step history is needed, create an archive copy such as `60-prep.<step-id>.md`, but keep `60-prep.md` as the current selected-step scratch file.
+The canonical `60-prep.md` is overwritten for each selected step. Do not create archive copies manually; the workspace history hook preserves prior versions under `history/`, labelled by their `Selected step:` line.
 
 ## Do
 - Select exactly one implementation step

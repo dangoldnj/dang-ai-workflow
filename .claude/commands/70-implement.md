@@ -16,6 +16,8 @@ formats/phase.md
 
 brief.md is canonical for step status. 70-implement.md is scratch only.
 
+70-implement.md must contain a `Step: <id>` line naming the frontmatter `current_step` ID it was written for. The workspace history hook uses this line to label archived copies.
+
 ## Progress tracking
 - Record the step ID exactly as frontmatter `current_step`
 - Mark step status as one of:
