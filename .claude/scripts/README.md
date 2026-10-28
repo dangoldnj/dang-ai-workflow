@@ -132,7 +132,7 @@ Claude Code can run the validator after workflow workspace writes with a `PostTo
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/scripts/hooks/validate-brief-post-tool-use.cjs"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/validate-brief-post-tool-use.cjs\""
           }
         ]
       }
@@ -162,7 +162,7 @@ The hook helper:
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/scripts/hooks/archive-workspace-file-pre-tool-use.cjs"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/archive-workspace-file-pre-tool-use.cjs\""
           }
         ]
       }
@@ -222,6 +222,8 @@ node .claude/scripts/setup-hooks.ts --write --local
 ### Behavior
 
 - A hook or permission counts as installed when it appears in either `settings.json` or `settings.local.json`.
+- A hook entry that runs the same hook script with a different command, such as the earlier relative `node .claude/scripts/hooks/...` form, is outdated. `--write` replaces it in whichever file holds it. Autopilot treats outdated hooks like missing ones.
+- Hook commands use `"$CLAUDE_PROJECT_DIR/..."`, so they work when Claude Code runs from a directory other than the repository root.
 - Only missing entries are added. Existing settings, hooks, and permissions are preserved, and a rerun changes nothing.
 - The target file is rewritten as 2-space-indented JSON.
 - A settings file that is not valid JSON is never written.
@@ -231,7 +233,7 @@ node .claude/scripts/setup-hooks.ts --write --local
 | Code | Meaning |
 |---|---|
 | `0` | All hooks are installed, or were just added |
-| `1` | Hooks (or, with `--permissions`, permissions) are missing and `--write` was not given |
+| `1` | Hooks are missing or outdated (or, with `--permissions`, permissions are missing) and `--write` was not given |
 | `2` | Usage error, or a settings file could not be parsed |
 
 ---
