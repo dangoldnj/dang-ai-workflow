@@ -20,6 +20,7 @@ In addition to every stop from the validator, router, and phase files:
 - A test fails that is not declared as an expected failure (see formats/phase.md)
 - A commit is needed that the plan does not list for the step
 - `commits_authorized` is false and a step has finished 70-implement
+- The context window is roughly 60-80% full, or compaction is near. Stop at the next phase boundary and tell the user to rerun autopilot in a new thread; all state is in the workspace files.
 
 ## Commits
 When `commits_authorized` is true, approving the plan approves its planned commits for each step. Make them as their changes pass automated checks, following .claude/CLAUDE.md commit rules. If a step lists no commits, stop and propose them. Do not include workspace files under thoughts/ in step commits.
