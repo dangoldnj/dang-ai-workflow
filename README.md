@@ -185,7 +185,7 @@ node .claude/scripts/summarize-briefs.ts
 
 This is an actively evolving workflow used in production. Rough edges being worked on:
 
-- **Scratch file retention**: canonical phase scratch files such as `60-prep.md` represent the current phase state and are overwritten. The history hook preserves each prior version under `work/<slug>/history/`, but only for writes made through the agent's file tools; shell writes are not archived.
+- **Scratch file retention**: canonical phase scratch files such as `60-prep.md` represent the current phase state and are overwritten. The history hook preserves the version each phase run started from under `work/<slug>/history/`, but only for writes made through the agent's file tools; shell writes are not archived.
 - **Git authorization**: the agent can be zealous with commits. If you intend to use `commits_authorized: true`, add additional context comments to constrain this as desired.
 
 ---

@@ -151,7 +151,7 @@ The hook helper:
 
 ## Workspace History
 
-`hooks/archive-workspace-file-pre-tool-use.cjs` is a `PreToolUse` hook that preserves workspace files before they are overwritten. Phase outputs such as `60-prep.md` and `70-implement.md` are rewritten for every step, and `50-plan.md` may be amended mid-implementation; the hook keeps every prior version.
+`hooks/archive-workspace-file-pre-tool-use.cjs` is a `PreToolUse` hook that preserves workspace files before a later phase overwrites them. Phase outputs such as `60-prep.md` and `70-implement.md` are rewritten for every step, and `50-plan.md` may be amended mid-implementation; the hook keeps the version each phase run started from.
 
 ```json
 {
@@ -171,20 +171,21 @@ The hook helper:
 }
 ```
 
-Before a write to an existing file in `thoughts/shared/work/<slug>/`, the hook copies it to `<slug>/history/<name>[.<step>].<NNN>.<ext>`:
+Before the first write to an existing file in `thoughts/shared/work/<slug>/` during a phase run, the hook copies it to `<slug>/history/<name>[.<step>].<NNN>.<ext>`. Later writes in the same run are not archived, so a phase that edits a file many times leaves one archive, not one per edit.
+
+The run number `<NNN>` is one more than the count of phase outcome Decisions (`[ran]`, `[ran: <step>]`, `[skipped]`) in `brief.md`, or 1 when the workspace has no `brief.md`. Each phase appends its outcome when it finishes, so the number stays fixed during a run and changes when the next phase starts. With a brief holding 11 outcomes, run 12 produces:
 
 | Archived file | Contains | Archive name |
 |---|---|---|
-| `60-prep.md` | `Selected step: B2` | `history/60-prep.B2.001.md`, then `.002`, ... |
-| `70-implement.md` | `Step: B2` | `history/70-implement.B2.001.md` |
-| `50-plan.md` | no step line | `history/50-plan.001.md` |
-| `notes/a.md` | no step line | `history/notes/a.001.md` |
+| `60-prep.md` | `Selected step: B2` | `history/60-prep.B2.012.md` |
+| `70-implement.md` | `Step: B2` | `history/70-implement.B2.012.md` |
+| `50-plan.md` | no step line | `history/50-plan.012.md` |
+| `notes/a.md` | no step line | `history/notes/a.012.md` |
 
 The hook:
 
-- Takes the step label from the archived file's own contents, so the label always names the step those contents belong to. Labels must be plain IDs (`[A-Za-z0-9_-]+`); anything else is archived without a label.
-- Numbers archives per name and step, starting at `001`.
-- Skips the copy when the contents match the latest archive, so failed or repeated edits do not create duplicates.
+- Takes the step label from the archived file's own contents, so the label always names the step those contents belong to. Labels must be plain IDs (`[A-Za-z0-9_-]+`); anything else is archived without a label. The label does not affect the once-per-run check: if a run's first write archives `60-prep.B1.012.md`, later writes in run 12 that show `Selected step: B2` are not archived.
+- Archives once per run even when the contents match an earlier archive, because that archive records that the run has started.
 - Ignores `brief.md`, `.brief.last-valid.md`, files under `history/`, files that do not exist yet, and writes outside `thoughts/shared/work/*/`.
 - Exits `2` if archiving fails, which blocks the write so nothing is overwritten unpreserved.
 
