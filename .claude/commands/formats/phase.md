@@ -41,6 +41,7 @@ Output:
 - If findings contradict the brief, follow the conflict protocol in brief.md.
 - Append any newly discovered constraints to brief.md Constraints, tagged with the current phase.
 - If this phase answers an open Unknown, follow the resolution protocol in brief.md: move it to Decisions with a `resolved UK` reference and preserve the original Unknown text in the Decision rationale.
+- Declare expected test failures; never count them. When work intentionally leaves a test failing, mark that test as expected to fail in the test code (e.g. `it.fails`, `test.failing`, `xfail`) so the suite passes. If the framework has no such marker, append a Constraint naming each test by file and test name. "N failures expected" is not a declaration. Remove the declaration in the step that makes the test pass. Any undeclared failure is a real failure.
 - Stop at every phase boundary. Do not auto-advance to the next phase. The user invokes each phase change explicitly. Invoking autopilot is that explicit invocation for each boundary until autopilot stops.
 
 ## Validation

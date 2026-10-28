@@ -16,7 +16,7 @@ Run consecutive phases without stopping at phase boundaries. Every other rule in
 ## Stops
 In addition to every stop from the validator, router, and phase files:
 - 80-verify records `Status: fail`. Do not start rework until the user has discussed it.
-- A test fails that is not declared as expected in Constraints
+- A test fails that is not declared as an expected failure (see formats/phase.md)
 - A commit is needed that the plan does not list for the step
 - `commits_authorized` is false and a step has finished 70-implement
 
