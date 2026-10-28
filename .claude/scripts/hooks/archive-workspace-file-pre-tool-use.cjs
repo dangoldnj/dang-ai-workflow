@@ -14,9 +14,14 @@ const { basename, dirname, extname, join, relative } = require('node:path');
 // loses what an earlier phase wrote. Later writes in the same run are not
 // archived: they are that run's own work in progress.
 // brief.md is excluded: its history is protected by the validator snapshot
-// and append-only rules.
+// and append-only rules. The phase-run marker is validator-owned state.
 const HISTORY_DIR = 'history';
-const EXCLUDED_FILES = new Set(['brief.md', '.brief.last-valid.md']);
+const PHASE_RUN_FILE = '.phase-run.json';
+const EXCLUDED_FILES = new Set([
+  'brief.md',
+  '.brief.last-valid.md',
+  PHASE_RUN_FILE,
+]);
 
 const input = JSON.parse(readFileSync(0, 'utf8'));
 const filePath = input.tool_input?.file_path;
@@ -96,11 +101,34 @@ function findStepLabel(contents) {
     : undefined;
 }
 
-// Each phase appends `[<phase>] [ran]`, `[ran: <step>]`, or `[skipped]` to
-// brief.md Decisions when it finishes, so the count of those entries stays
-// fixed while a phase runs and grows by one before the next phase starts.
-// The current run is that count plus one; without brief.md it is run 1.
+// A passing phase precheck records the run it starts in .phase-run.json.
+// Writes a phase makes after appending its outcome Decision stay in its run
+// until the next precheck.
 function findPhaseRun(workspacePath) {
+  return readRecordedPhaseRun(workspacePath) ?? countPhaseRun(workspacePath);
+}
+
+function readRecordedPhaseRun(workspacePath) {
+  const phaseRunPath = join(workspacePath, PHASE_RUN_FILE);
+
+  if (!existsSync(phaseRunPath)) {
+    return undefined;
+  }
+
+  try {
+    const run = JSON.parse(readFileSync(phaseRunPath, 'utf8'))?.run;
+    return Number.isInteger(run) && run > 0 ? run : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+// Fallback for workspaces without a recorded run. Each phase appends
+// `[<phase>] [ran]`, `[ran: <step>]`, or `[skipped]` to brief.md Decisions
+// when it finishes; the current run is that count plus one, and run 1
+// without brief.md. A write made after a phase's outcome Decision counts as
+// the next run here.
+function countPhaseRun(workspacePath) {
   const briefPath = join(workspacePath, 'brief.md');
 
   if (!existsSync(briefPath)) {

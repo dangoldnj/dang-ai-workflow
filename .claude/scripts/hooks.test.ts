@@ -118,7 +118,6 @@ test('PreToolUse archive hook archives a file once per phase run', t => {
 
 test(
   'PreToolUse archive hook keeps writes made after a phase outcome in that phase run',
-  { todo: 'archive hook does not read .phase-run.json yet' },
   t => {
     const workspace = makeArchiveWorkspace(t);
     const implementPath = join(workspace, '70-implement.md');
@@ -144,6 +143,30 @@ test(
     assert(archived.includes('C\n'), `history holds ${archived.join(', ')}`);
   },
 );
+
+test('PreToolUse archive hook takes the run from .phase-run.json over Decisions', t => {
+  const workspace = makeArchiveWorkspace(t);
+  const planPath = join(workspace, '50-plan.md');
+  writeArchiveBrief(workspace, ['- [00-context] [ran] [Context recorded]']);
+  writePhaseRun(workspace, 7, '50-plan');
+  writeFileSync(planPath, 'Plan v1\n', 'utf8');
+
+  runArchiveHook(planPath);
+
+  assert.deepEqual(listHistory(workspace), ['50-plan.007.md']);
+});
+
+test('PreToolUse archive hook counts Decisions when .phase-run.json is unreadable', t => {
+  const workspace = makeArchiveWorkspace(t);
+  const planPath = join(workspace, '50-plan.md');
+  writeArchiveBrief(workspace, ['- [00-context] [ran] [Context recorded]']);
+  writeFileSync(join(workspace, '.phase-run.json'), '{ "run": 0 }\n', 'utf8');
+  writeFileSync(planPath, 'Plan v1\n', 'utf8');
+
+  runArchiveHook(planPath);
+
+  assert.deepEqual(listHistory(workspace), ['50-plan.002.md']);
+});
 
 test('PreToolUse archive hook treats a workspace without brief.md as run 1', t => {
   const workspace = makeArchiveWorkspace(t);
@@ -234,12 +257,13 @@ test('PreToolUse archive hook mirrors nested paths under history', t => {
   assert.equal(existsSync(join(workspace, 'history', 'notes', 'a.001.md')), true);
 });
 
-test('PreToolUse archive hook leaves brief, snapshot, and history files alone', t => {
+test('PreToolUse archive hook leaves brief, snapshot, phase-run, and history files alone', t => {
   const workspace = makeArchiveWorkspace(t);
   mkdirSync(join(workspace, 'history'));
   const paths = [
     join(workspace, 'brief.md'),
     join(workspace, '.brief.last-valid.md'),
+    join(workspace, '.phase-run.json'),
     join(workspace, 'history', '60-prep.001.md'),
   ];
   paths.forEach(path => writeFileSync(path, 'contents\n', 'utf8'));
