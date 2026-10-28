@@ -61,7 +61,7 @@ node .claude/scripts/validate-brief.ts --restore thoughts/shared/work/<slug>
 | Argument | Effect |
 |---|---|
 | `<workspace-path>` | Required, except with `--list-invariants` |
-| `[before-phase]` | Optional second positional. Validates the preconditions for entering that phase. Rejected with `--next` and `--restore` |
+| `[before-phase]` | Optional second positional. Validates the preconditions for entering that phase and, if they pass, starts a phase run (see [Workspace History](#workspace-history)). Rejected with `--next` and `--restore` |
 
 ### Flags
 
@@ -173,7 +173,11 @@ The hook helper:
 
 Before the first write to an existing file in `thoughts/shared/work/<slug>/` during a phase run, the hook copies it to `<slug>/history/<name>[.<step>].<NNN>.<ext>`. Later writes in the same run are not archived, so a phase that edits a file many times leaves one archive, not one per edit.
 
-The run number `<NNN>` is one more than the count of phase outcome Decisions (`[ran]`, `[ran: <step>]`, `[skipped]`) in `brief.md`, or 1 when the workspace has no `brief.md`. Each phase appends its outcome when it finishes, so the number stays fixed during a run and changes when the next phase starts. With a brief holding 11 outcomes, run 12 produces:
+The run number `<NNN>` comes from `<slug>/.phase-run.json`, which a passing phase precheck (`validate-brief.ts <workspace> <phase>`) writes as `{ "run": <n>, "phase": "<phase>" }`. Each precheck increments `run`; the first one in a workspace starts at one more than the count of phase outcome Decisions (`[ran]`, `[ran: <step>]`, `[skipped]`) in `brief.md`, so numbering continues from earlier archives. A write a phase makes after appending its outcome Decision stays in that phase's run, and rerunning a precheck mid-phase starts a new run, which may add one archive. If the precheck cannot read an existing marker or write a new one, it exits `2` and the phase does not run.
+
+Without a readable `.phase-run.json`, the hook falls back to one more than the outcome count, or 1 when the workspace has no `brief.md`. In that mode a write made after a phase's outcome Decision counts as the next run.
+
+In run 12:
 
 | Archived file | Contains | Archive name |
 |---|---|---|
@@ -186,7 +190,7 @@ The hook:
 
 - Takes the step label from the archived file's own contents, so the label always names the step those contents belong to. Labels must be plain IDs (`[A-Za-z0-9_-]+`); anything else is archived without a label. The label does not affect the once-per-run check: if a run's first write archives `60-prep.B1.012.md`, later writes in run 12 that show `Selected step: B2` are not archived.
 - Archives once per run even when the contents match an earlier archive, because that archive records that the run has started.
-- Ignores `brief.md`, `.brief.last-valid.md`, files under `history/`, files that do not exist yet, and writes outside `thoughts/shared/work/*/`.
+- Ignores `brief.md`, `.brief.last-valid.md`, `.phase-run.json`, files under `history/`, files that do not exist yet, and writes outside `thoughts/shared/work/*/`.
 - Exits `2` if archiving fails, which blocks the write so nothing is overwritten unpreserved.
 
 > [!NOTE]
