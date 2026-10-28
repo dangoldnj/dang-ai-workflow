@@ -116,6 +116,35 @@ test('PreToolUse archive hook archives a file once per phase run', t => {
   );
 });
 
+test(
+  'PreToolUse archive hook keeps writes made after a phase outcome in that phase run',
+  { todo: 'archive hook does not read .phase-run.json yet' },
+  t => {
+    const workspace = makeArchiveWorkspace(t);
+    const implementPath = join(workspace, '70-implement.md');
+    writeArchiveBrief(workspace, ['- [60-prep] [ran: S1] [x]']);
+    writePhaseRun(workspace, 2, '70-implement');
+    writeFileSync(implementPath, 'A\n', 'utf8');
+
+    runArchiveHook(implementPath);
+    writeFileSync(implementPath, 'B\n', 'utf8');
+    writeArchiveBrief(workspace, [
+      '- [60-prep] [ran: S1] [x]',
+      '- [70-implement] [ran: S1] [x]',
+    ]);
+    runArchiveHook(implementPath);
+    writeFileSync(implementPath, 'C\n', 'utf8');
+    writePhaseRun(workspace, 3, '70-implement');
+    runArchiveHook(implementPath);
+    writeFileSync(implementPath, 'D\n', 'utf8');
+
+    const archived = listHistory(workspace).map(name =>
+      readFileSync(join(workspace, 'history', name), 'utf8'),
+    );
+    assert(archived.includes('C\n'), `history holds ${archived.join(', ')}`);
+  },
+);
+
 test('PreToolUse archive hook treats a workspace without brief.md as run 1', t => {
   const workspace = makeArchiveWorkspace(t);
   const planPath = join(workspace, '50-plan.md');
@@ -243,6 +272,13 @@ const writeArchiveBrief = (workspace: string, decisions: string[]): void =>
   writeFileSync(
     join(workspace, 'brief.md'),
     ['## Goal', 'Sample.', '', '## Decisions', ...decisions, ''].join('\n'),
+    'utf8',
+  );
+
+const writePhaseRun = (workspace: string, run: number, phase: string): void =>
+  writeFileSync(
+    join(workspace, '.phase-run.json'),
+    `${JSON.stringify({ run, phase })}\n`,
     'utf8',
   );
 

@@ -72,7 +72,11 @@ declare module 'node:test' {
   };
 
   type TestFn = (t: TestContext) => void | Promise<void>;
-  const test: (name: string, fn: TestFn) => void;
+  type TestOptions = { todo?: boolean | string };
+  const test: {
+    (name: string, fn: TestFn): void;
+    (name: string, options: TestOptions, fn: TestFn): void;
+  };
   export default test;
 }
 
