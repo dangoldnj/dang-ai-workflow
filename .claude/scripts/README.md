@@ -40,7 +40,7 @@ The `PostToolUse` hook (`hooks/validate-brief-post-tool-use.cjs`) checks the Nod
 # validate the current state of a workspace
 node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug>
 
-# validate the preconditions for entering a specific phase
+# check the preconditions for entering a specific phase; if they pass, this starts a phase run
 node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug> 70-implement
 
 # ask the router which phase should run next

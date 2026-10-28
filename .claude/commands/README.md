@@ -70,7 +70,7 @@ The validator runs after every phase write. Errors block the phase from advancin
 # validate the current state of a workspace
 node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug>
 
-# validate the preconditions for entering the next phase
+# check the preconditions for entering the next phase; if they pass, this starts a phase run
 node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug> <next-phase>
 
 # ask the router which phase should run next
