@@ -110,32 +110,52 @@ test('next action routes completed plan to 80-verify', t => {
   );
 });
 
-test('next action routes verified completed plan to 90-close', t => {
+const verifiedFixture = (decisions: string[]) => ({
+  frontmatter: {
+    status: 'in-progress',
+    current_phase: '80-verify',
+  },
+  plan: [{ text: 'Implement validator tests', checked: true }],
+  acceptanceCriteria: [{ text: 'Validator behavior is covered', checked: true }],
+  decisions,
+  progress: [{ step: 'Implement validator tests' }],
+  verification: {
+    status: 'pass' as const,
+    automatedChecks: 'passed' as const,
+    manualVerification: 'confirmed' as const,
+  },
+  outputs: outputsThrough('80-verify'),
+});
+
+test('next action stops verified completed plan until the work is merged', t => {
   assert.deepEqual(
     getNextWorkflowAction(
-      parseFixture(t, {
-        frontmatter: {
-          status: 'in-progress',
-          current_phase: '80-verify',
-        },
-        plan: [{ text: 'Implement validator tests', checked: true }],
-        acceptanceCriteria: [
-          { text: 'Validator behavior is covered', checked: true },
-        ],
-        decisions: ranDecisionsThrough('80-verify'),
-        progress: [{ step: 'Implement validator tests' }],
-        verification: {
-          status: 'pass',
-          automatedChecks: 'passed',
-          manualVerification: 'confirmed',
-        },
-        outputs: outputsThrough('80-verify'),
-      }),
+      parseFixture(t, verifiedFixture(ranDecisionsThrough('80-verify'))),
+    ),
+    {
+      kind: 'stop',
+      reason: 'awaiting-merge',
+      message:
+        'Verification passed; 90-close runs after the work is merged into the default branch',
+    },
+  );
+});
+
+test('next action routes verified and merged plan to 90-close', t => {
+  assert.deepEqual(
+    getNextWorkflowAction(
+      parseFixture(
+        t,
+        verifiedFixture([
+          ...ranDecisionsThrough('80-verify'),
+          '- [90-close] [merged: PR #12] [gh reports MERGED]',
+        ]),
+      ),
     ),
     {
       kind: 'phase',
       phase: '90-close',
-      reason: 'Verification passed; ready to close',
+      reason: 'Verification passed and the work is merged; ready to close',
     },
   );
 });

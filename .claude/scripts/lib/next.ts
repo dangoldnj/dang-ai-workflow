@@ -1,4 +1,5 @@
 import { PHASES, WORKFLOW_STATUSES } from './constants.ts';
+import { hasMergeAfterLatestVerification } from './merge.ts';
 import type { ParsedBrief, Phase } from './types.ts';
 
 type ReworkLoopPhase = '60-prep' | '70-implement' | '80-verify';
@@ -11,6 +12,7 @@ const REWORK_LOOP_PHASES: readonly ReworkLoopPhase[] = [
 
 type StopReason =
   | 'abandoned'
+  | 'awaiting-merge'
   | 'blocked'
   | 'complete'
   | 'invalid-current-phase'
@@ -98,11 +100,18 @@ export const getNextWorkflowAction = (
     }
 
     if (brief.sections.Verification?.status === 'pass') {
-      return {
-        kind: 'phase',
-        phase: '90-close',
-        reason: 'Verification passed; ready to close',
-      };
+      return hasMergeAfterLatestVerification(brief)
+        ? {
+            kind: 'phase',
+            phase: '90-close',
+            reason: 'Verification passed and the work is merged; ready to close',
+          }
+        : {
+            kind: 'stop',
+            reason: 'awaiting-merge',
+            message:
+              'Verification passed; 90-close runs after the work is merged into the default branch',
+          };
     }
 
     if (
