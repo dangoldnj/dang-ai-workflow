@@ -4,7 +4,9 @@ import {
   mkdirSync,
   mkdtempSync,
   readdirSync,
+  readFileSync,
   rmSync,
+  writeFileSync,
 } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -13,6 +15,8 @@ import { requireNodeVersion } from './lib/require-node-version.ts';
 const UPSTREAM_REPOSITORY = 'https://github.com/dangoldnj/dang-ai-workflow.git';
 const WORKFLOW_DIRECTORIES = ['commands', 'scripts'] as const;
 type WorkflowDirectory = (typeof WORKFLOW_DIRECTORIES)[number];
+const CLAUDE_MD = '.claude/CLAUDE.md';
+const LOCAL_OVERRIDES_HEADING = /^## LOCAL OVERRIDES\b/;
 
 type SyncOptions = {
   root: string;
@@ -20,6 +24,7 @@ type SyncOptions = {
   directories: WorkflowDirectory[];
   dryRun: boolean;
   prune: boolean;
+  claudeMd: boolean;
 };
 
 type ParsedArgs =
@@ -32,7 +37,53 @@ type SyncResult = {
   filesCopied: number;
   pruned: string[];
   directories: WorkflowDirectory[];
+  claudeMd?: ClaudeMdMerge;
 };
+
+export type ClaudeMdMerge = {
+  merged: string;
+  changed: boolean;
+  dropped: string[];
+  keptLocalOverrides: boolean;
+};
+
+// Replaces the upstream-managed part of CLAUDE.md (everything above the
+// LOCAL OVERRIDES heading) and keeps the local overrides section verbatim.
+// Lines that exist only in the local managed part are reported as dropped.
+export const mergeClaudeMd = (
+  upstream: string,
+  local: string | undefined,
+): ClaudeMdMerge => {
+  const upstreamParts = splitClaudeMd(upstream);
+  const localParts = local === undefined ? undefined : splitClaudeMd(local);
+  const keptLocalOverrides = localParts?.overrides !== undefined;
+  const overrides = localParts?.overrides ?? upstreamParts.overrides ?? [];
+  const merged = [...upstreamParts.managed, ...overrides].join('\n');
+  const upstreamLines = new Set(upstreamParts.managed.map(line => line.trim()));
+  const dropped = (localParts?.managed ?? []).filter(
+    line => line.trim() !== '' && !upstreamLines.has(line.trim()),
+  );
+
+  return {
+    merged,
+    changed: local === undefined || normalize(local) !== merged,
+    dropped,
+    keptLocalOverrides,
+  };
+};
+
+const splitClaudeMd = (
+  content: string,
+): { managed: string[]; overrides: string[] | undefined } => {
+  const lines = normalize(content).split('\n');
+  const index = lines.findIndex(line => LOCAL_OVERRIDES_HEADING.test(line));
+  return index === -1
+    ? { managed: lines, overrides: undefined }
+    : { managed: lines.slice(0, index), overrides: lines.slice(index) };
+};
+
+const normalize = (content: string): string =>
+  content.replace(/\r\n?/g, '\n');
 
 export const syncWorkflow = ({
   root,
@@ -40,6 +91,7 @@ export const syncWorkflow = ({
   directories,
   dryRun,
   prune,
+  claudeMd,
 }: SyncOptions): SyncResult => {
   mkdirSync(root, { recursive: true });
   const temporaryRepository = mkdtempSync(join(root, '.dang-ai-workflow-'));
@@ -89,6 +141,7 @@ export const syncWorkflow = ({
       resolvedCommit,
       '--',
       ...directories.map(directory => `.claude/${directory}`),
+      ...(claudeMd ? [CLAUDE_MD] : []),
     ]);
 
     const targetClaudeDirectory = join(root, '.claude');
@@ -112,10 +165,40 @@ export const syncWorkflow = ({
       pruned.push(...change.pruned.map(file => `.claude/${directory}/${file}`));
     }
 
-    return { commit: resolvedCommit, dryRun, filesCopied, pruned, directories };
+    const claudeMdMerge = claudeMd
+      ? syncClaudeMd(temporaryRepository, root, dryRun)
+      : undefined;
+
+    return {
+      commit: resolvedCommit,
+      dryRun,
+      filesCopied,
+      pruned,
+      directories,
+      claudeMd: claudeMdMerge,
+    };
   } finally {
     rmSync(temporaryRepository, { recursive: true, force: true });
   }
+};
+
+const syncClaudeMd = (
+  temporaryRepository: string,
+  root: string,
+  dryRun: boolean,
+): ClaudeMdMerge => {
+  const targetPath = join(root, CLAUDE_MD);
+  const merge = mergeClaudeMd(
+    readFileSync(join(temporaryRepository, CLAUDE_MD), 'utf8'),
+    existsSync(targetPath) ? readFileSync(targetPath, 'utf8') : undefined,
+  );
+
+  if (!dryRun && merge.changed) {
+    mkdirSync(dirname(targetPath), { recursive: true });
+    writeFileSync(targetPath, merge.merged, 'utf8');
+  }
+
+  return merge;
 };
 
 type DirectoryChange = { copied: string[]; pruned: string[] };
@@ -198,6 +281,7 @@ const parseArgs = (argv: string[]): ParsedArgs => {
   let root = process.cwd();
   let dryRun = false;
   let prune = false;
+  let claudeMd = false;
   const directories: WorkflowDirectory[] = [];
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -209,6 +293,8 @@ const parseArgs = (argv: string[]): ParsedArgs => {
       dryRun = true;
     } else if (arg === '--prune') {
       prune = true;
+    } else if (arg === '--claude-md') {
+      claudeMd = true;
     } else if (arg === '--commit') {
       const value = argv[i + 1];
       if (value === undefined) {
@@ -228,14 +314,18 @@ const parseArgs = (argv: string[]): ParsedArgs => {
     }
   }
 
-  if (directories.length === 0) {
+  if (directories.length === 0 && !claudeMd) {
     return {
       ok: false,
-      message: 'Choose at least one directory with --commands or --scripts',
+      message:
+        'Choose at least one of --commands, --scripts, or --claude-md',
     };
   }
 
-  return { ok: true, options: { root, commit, directories, dryRun, prune } };
+  return {
+    ok: true,
+    options: { root, commit, directories, dryRun, prune, claudeMd },
+  };
 };
 
 const main = (): void => {
@@ -244,27 +334,60 @@ const main = (): void => {
   if (!args.ok) {
     console.error(args.message);
     console.error(
-      'Usage: node .claude/scripts/sync-workflow.ts (--commands | --scripts) [--commit REF] [--root PATH] [--prune] [--dry-run]',
+      'Usage: node .claude/scripts/sync-workflow.ts (--commands | --scripts | --claude-md) [--commit REF] [--root PATH] [--prune] [--dry-run]',
     );
     process.exit(2);
   }
 
   try {
     const result = syncWorkflow(args.options);
-    const directories = result.directories
-      .map(directory => `.claude/${directory}`)
-      .join(' and ');
-    const summary = result.dryRun ? '[dry-run] Would sync' : 'Synced';
-    console.log(
-      `${summary} ${directories} from ${result.commit} (${result.filesCopied} files, ${result.pruned.length} pruned).`,
-    );
-    for (const file of result.pruned) {
-      console.log(`  ${result.dryRun ? 'would remove' : 'removed'} ${file}`);
+    if (result.directories.length > 0) {
+      const directories = result.directories
+        .map(directory => `.claude/${directory}`)
+        .join(' and ');
+      const summary = result.dryRun ? '[dry-run] Would sync' : 'Synced';
+      console.log(
+        `${summary} ${directories} from ${result.commit} (${result.filesCopied} files, ${result.pruned.length} pruned).`,
+      );
+      for (const file of result.pruned) {
+        console.log(`  ${result.dryRun ? 'would remove' : 'removed'} ${file}`);
+      }
+    }
+    if (result.claudeMd !== undefined) {
+      reportClaudeMd(result.claudeMd, result.dryRun, result.commit);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Unable to sync workflow files: ${message}`);
     process.exit(2);
+  }
+};
+
+const reportClaudeMd = (
+  merge: ClaudeMdMerge,
+  dryRun: boolean,
+  commit: string,
+): void => {
+  if (!merge.changed) {
+    console.log(`${CLAUDE_MD} already matches ${commit}.`);
+    return;
+  }
+
+  console.log(
+    `${dryRun ? '[dry-run] Would update' : 'Updated'} ${CLAUDE_MD} from ${commit}.`,
+  );
+  if (!merge.keptLocalOverrides) {
+    console.error(
+      `WARNING: ${CLAUDE_MD} has no "## LOCAL OVERRIDES" section; the whole file ${dryRun ? 'would be' : 'was'} replaced.`,
+    );
+  }
+  if (merge.dropped.length > 0) {
+    console.error(
+      `WARNING: ${merge.dropped.length} local line(s) above LOCAL OVERRIDES ${dryRun ? 'would be' : 'were'} dropped. Move them under LOCAL OVERRIDES to keep them:`,
+    );
+    for (const line of merge.dropped) {
+      console.error(`  ${line}`);
+    }
   }
 };
 
