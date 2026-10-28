@@ -68,6 +68,7 @@ declare module 'node:path' {
 declare module 'node:test' {
   export type TestContext = {
     after: (fn: () => void) => void;
+    skip: (message?: string) => void;
   };
 
   type TestFn = (t: TestContext) => void | Promise<void>;

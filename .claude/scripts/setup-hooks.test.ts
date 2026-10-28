@@ -108,13 +108,19 @@ test('setup-hooks refuses to write over invalid settings JSON', t => {
   assert.equal(readFileSync(settingsPath, 'utf8'), '{ not json');
 });
 
-test('setup-hooks installs the hooks shipped in settings.example.json', () => {
-  const example = JSON.parse(
-    readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), '..', 'settings.example.json'),
-      'utf8',
-    ),
+test('setup-hooks installs the hooks shipped in settings.example.json', t => {
+  const examplePath = join(
+    dirname(fileURLToPath(import.meta.url)),
+    '..',
+    'settings.example.json',
   );
+  // Workflow sync installs scripts/ but not settings.example.json, so this
+  // parity check only applies in the upstream repository.
+  if (!existsSync(examplePath)) {
+    t.skip('settings.example.json is not installed in this repository');
+    return;
+  }
+  const example = JSON.parse(readFileSync(examplePath, 'utf8'));
 
   WORKFLOW_HOOKS.forEach(hook =>
     assert.equal(isHookInstalled(example, hook), true),
