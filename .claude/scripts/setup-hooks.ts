@@ -5,8 +5,11 @@ import { requireNodeVersion } from './lib/require-node-version.ts';
 type HookSpec = {
   event: 'PreToolUse' | 'PostToolUse';
   matcher: string;
+  script: string;
   command: string;
 };
+
+type HookState = 'installed' | 'outdated' | 'missing';
 
 type Settings = Record<string, unknown>;
 
@@ -27,23 +30,27 @@ export type SetupResult =
       ok: true;
       targetPath: string;
       missing: HookSpec[];
+      outdated: HookSpec[];
       missingPermissions: string[];
       written: boolean;
     }
   | { ok: false; message: string };
 
+// Commands resolve the script from $CLAUDE_PROJECT_DIR so hooks work when
+// Claude Code runs from a directory other than the repository root.
+const hookSpec = (
+  event: HookSpec['event'],
+  script: string,
+): HookSpec => ({
+  event,
+  matcher: 'Write|Edit|MultiEdit',
+  script,
+  command: `node "$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/${script}"`,
+});
+
 export const WORKFLOW_HOOKS: HookSpec[] = [
-  {
-    event: 'PreToolUse',
-    matcher: 'Write|Edit|MultiEdit',
-    command:
-      'node .claude/scripts/hooks/archive-workspace-file-pre-tool-use.cjs',
-  },
-  {
-    event: 'PostToolUse',
-    matcher: 'Write|Edit|MultiEdit',
-    command: 'node .claude/scripts/hooks/validate-brief-post-tool-use.cjs',
-  },
+  hookSpec('PreToolUse', 'archive-workspace-file-pre-tool-use.cjs'),
+  hookSpec('PostToolUse', 'validate-brief-post-tool-use.cjs'),
 ];
 
 // Permission allowlist entries for the commands the workflow runs. Optional:
@@ -62,9 +69,41 @@ const SETTINGS_FILE = 'settings.json';
 const LOCAL_SETTINGS_FILE = 'settings.local.json';
 
 export const isHookInstalled = (settings: Settings, hook: HookSpec): boolean =>
-  eventEntries(settings, hook.event).some(entry =>
-    entryCommands(entry).includes(hook.command),
+  hookState(settings, hook) === 'installed';
+
+// A hook is outdated when an entry runs the same hook script with a different
+// command, e.g. the earlier relative `node .claude/scripts/hooks/...` form.
+export const hookState = (settings: Settings, hook: HookSpec): HookState => {
+  const commands = eventEntries(settings, hook.event).flatMap(entryCommands);
+  if (commands.includes(hook.command)) return 'installed';
+  return commands.some(command => referencesScript(command, hook))
+    ? 'outdated'
+    : 'missing';
+};
+
+// Removes every command that runs each hook's script (dropping entries left
+// empty), then adds the current form.
+export const replaceHooks = (
+  settings: Settings,
+  hooks: HookSpec[],
+): Settings => {
+  if (hooks.length === 0) return settings;
+  const existingHooks = isRecord(settings.hooks) ? settings.hooks : {};
+  const cleanedHooks = hooks.reduce<Settings>(
+    (cleaned, hook) =>
+      Array.isArray(cleaned[hook.event])
+        ? {
+            ...cleaned,
+            [hook.event]: (cleaned[hook.event] as unknown[]).flatMap(entry =>
+              withoutScript(entry, hook),
+            ),
+          }
+        : cleaned,
+    existingHooks,
   );
+
+  return addHooks({ ...settings, hooks: cleanedHooks }, hooks);
+};
 
 export const addHooks = (settings: Settings, hooks: HookSpec[]): Settings => {
   const existingHooks = isRecord(settings.hooks) ? settings.hooks : {};
@@ -119,11 +158,19 @@ export const setupHooks = (options: SetupOptions): SetupResult => {
   const local = readSettings(localPath);
   if (!local.ok) return local;
 
-  const missing = WORKFLOW_HOOKS.filter(
+  const pending = WORKFLOW_HOOKS.filter(
     hook =>
       !isHookInstalled(shared.settings, hook) &&
       !isHookInstalled(local.settings, hook),
   );
+  const outdatedIn = (settings: Settings): HookSpec[] =>
+    pending.filter(hook => hookState(settings, hook) === 'outdated');
+  const outdatedShared = outdatedIn(shared.settings);
+  const outdatedLocal = outdatedIn(local.settings);
+  const outdated = pending.filter(
+    hook => outdatedShared.includes(hook) || outdatedLocal.includes(hook),
+  );
+  const missing = pending.filter(hook => !outdated.includes(hook));
 
   const missingPermissions = options.permissions
     ? WORKFLOW_PERMISSIONS.filter(
@@ -133,22 +180,55 @@ export const setupHooks = (options: SetupOptions): SetupResult => {
       )
     : [];
 
+  const result = { targetPath, missing, outdated, missingPermissions };
   if (
     !options.write ||
-    (missing.length === 0 && missingPermissions.length === 0)
+    (pending.length === 0 && missingPermissions.length === 0)
   ) {
-    return { ok: true, targetPath, missing, missingPermissions, written: false };
+    return { ok: true, ...result, written: false };
   }
 
-  const target = options.local ? local.settings : shared.settings;
-  mkdirSync(claudeDir, { recursive: true });
-  writeFileSync(
-    targetPath,
-    `${JSON.stringify(addPermissions(addHooks(target, missing), missingPermissions), null, 2)}\n`,
-    'utf8',
-  );
+  // Outdated entries are replaced in whichever file holds them; missing hooks
+  // and permissions go to the target file.
+  const files = [
+    {
+      path: sharedPath,
+      settings: shared.settings,
+      outdatedHere: outdatedShared,
+      isTarget: !options.local,
+    },
+    {
+      path: localPath,
+      settings: local.settings,
+      outdatedHere: outdatedLocal,
+      isTarget: options.local,
+    },
+  ];
+  const update = (file: (typeof files)[number]): Settings =>
+    file.isTarget
+      ? addPermissions(
+          replaceHooks(file.settings, [...file.outdatedHere, ...missing]),
+          missingPermissions,
+        )
+      : replaceHooks(file.settings, file.outdatedHere);
 
-  return { ok: true, targetPath, missing, missingPermissions, written: true };
+  mkdirSync(claudeDir, { recursive: true });
+  files
+    .filter(
+      file =>
+        file.outdatedHere.length > 0 ||
+        (file.isTarget &&
+          (missing.length > 0 || missingPermissions.length > 0)),
+    )
+    .forEach(file =>
+      writeFileSync(
+        file.path,
+        `${JSON.stringify(update(file), null, 2)}\n`,
+        'utf8',
+      ),
+    );
+
+  return { ok: true, ...result, written: true };
 };
 
 const readSettings = (
@@ -184,6 +264,23 @@ const entryCommands = (entry: HookEntry): string[] =>
           : [],
       )
     : [];
+
+const referencesScript = (command: string, hook: HookSpec): boolean =>
+  command.includes(`hooks/${hook.script}`);
+
+const withoutScript = (entry: unknown, hook: HookSpec): unknown[] => {
+  if (!isRecord(entry) || !Array.isArray(entry.hooks)) return [entry];
+  const remaining = entry.hooks.filter(
+    command =>
+      !(
+        isRecord(command) &&
+        typeof command.command === 'string' &&
+        referencesScript(command.command, hook)
+      ),
+  );
+  if (remaining.length === entry.hooks.length) return [entry];
+  return remaining.length === 0 ? [] : [{ ...entry, hooks: remaining }];
+};
 
 const allowList = (settings: Settings): unknown[] => {
   const permissions = settings.permissions;
@@ -230,8 +327,12 @@ const main = (): void => {
     process.exit(2);
   }
 
-  const { missing, missingPermissions } = result;
-  if (missing.length === 0 && missingPermissions.length === 0) {
+  const { missing, outdated, missingPermissions } = result;
+  if (
+    missing.length === 0 &&
+    outdated.length === 0 &&
+    missingPermissions.length === 0
+  ) {
     console.log(
       permissions
         ? 'Workflow hooks and permissions are installed.'
@@ -241,20 +342,26 @@ const main = (): void => {
   }
 
   console.log(
-    result.written
-      ? `Added to ${result.targetPath}:`
-      : 'Missing from workflow settings:',
+    result.written ? 'Updated workflow settings:' : 'Workflow settings need changes:',
   );
-  missing.forEach(hook => console.log(`  ${hook.event}: ${hook.command}`));
+  outdated.forEach(hook =>
+    console.log(`  outdated ${hook.event}: ${hook.script} -> ${hook.command}`),
+  );
+  missing.forEach(hook => console.log(`  missing ${hook.event}: ${hook.command}`));
   missingPermissions.forEach(permission =>
-    console.log(`  permission: ${permission}`),
+    console.log(`  missing permission: ${permission}`),
   );
 
   if (result.written) return;
 
-  console.log(`\nWould add to ${result.targetPath}:`);
-  console.log(formatMissing(missing, missingPermissions));
-  console.log('\nDry run only. Re-run with --write to add them.');
+  if (missing.length > 0 || missingPermissions.length > 0) {
+    console.log(`\nWould add to ${result.targetPath}:`);
+    console.log(formatMissing(missing, missingPermissions));
+  }
+  if (outdated.length > 0) {
+    console.log('\nOutdated entries would be replaced in the file that holds them.');
+  }
+  console.log('\nDry run only. Re-run with --write to apply.');
   process.exit(1);
 };
 

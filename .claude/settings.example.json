@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/scripts/hooks/archive-workspace-file-pre-tool-use.cjs"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/archive-workspace-file-pre-tool-use.cjs\""
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/scripts/hooks/validate-brief-post-tool-use.cjs"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/validate-brief-post-tool-use.cjs\""
           }
         ]
       }

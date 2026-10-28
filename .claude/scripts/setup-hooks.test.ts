@@ -131,6 +131,53 @@ test('setup-hooks installs the hooks shipped in settings.example.json', t => {
   );
 });
 
+test('setup-hooks reports relative-path hook entries as outdated', t => {
+  const root = makeRoot(t);
+  writeSettings(root, 'settings.json', relativeHookSettings());
+
+  const result = setupHooks({ root, write: false, local: false, permissions: false });
+
+  assert.deepEqual(result.ok && result.outdated, WORKFLOW_HOOKS);
+  assert.deepEqual(result.ok && result.missing, []);
+});
+
+test('setup-hooks --write replaces outdated entries in place', t => {
+  const root = makeRoot(t);
+  const settings = relativeHookSettings();
+  settings.hooks.PostToolUse.push({
+    matcher: 'Bash',
+    hooks: [{ type: 'command', command: 'echo hi' }],
+  });
+  writeSettings(root, 'settings.json', settings);
+
+  setupHooks({ root, write: true, local: false, permissions: false });
+  const written = readSettings(root, 'settings.json');
+
+  assert.equal(written.hooks.PreToolUse.length, 1);
+  assert.equal(written.hooks.PostToolUse.length, 2);
+  assert.equal(written.hooks.PostToolUse[0].hooks[0].command, 'echo hi');
+  WORKFLOW_HOOKS.forEach(hook =>
+    assert.equal(isHookInstalled(written, hook), true),
+  );
+  assert.equal(
+    JSON.stringify(written).includes('"node .claude/scripts/hooks/'),
+    false,
+  );
+});
+
+test('setup-hooks --write fixes outdated entries in the file that holds them', t => {
+  const root = makeRoot(t);
+  writeSettings(root, 'settings.local.json', relativeHookSettings());
+
+  setupHooks({ root, write: true, local: false, permissions: false });
+
+  assert.equal(existsSync(join(root, '.claude', 'settings.json')), false);
+  const local = readSettings(root, 'settings.local.json');
+  WORKFLOW_HOOKS.forEach(hook =>
+    assert.equal(isHookInstalled(local, hook), true),
+  );
+});
+
 test('setup-hooks ignores permissions unless asked', t => {
   const root = makeRoot(t);
 
@@ -180,6 +227,36 @@ test('setup-hooks --permissions reports missing permissions without writing', t 
   assert.deepEqual(result.ok && result.missing, []);
   assert.deepEqual(result.ok && result.missingPermissions, WORKFLOW_PERMISSIONS);
   assert.equal(result.ok && result.written, false);
+});
+
+// The hook entries setup-hooks wrote before commands used $CLAUDE_PROJECT_DIR.
+const relativeHookSettings = () => ({
+  hooks: {
+    PreToolUse: [
+      {
+        matcher: 'Write|Edit|MultiEdit',
+        hooks: [
+          {
+            type: 'command',
+            command:
+              'node .claude/scripts/hooks/archive-workspace-file-pre-tool-use.cjs',
+          },
+        ],
+      },
+    ],
+    PostToolUse: [
+      {
+        matcher: 'Write|Edit|MultiEdit',
+        hooks: [
+          {
+            type: 'command',
+            command:
+              'node .claude/scripts/hooks/validate-brief-post-tool-use.cjs',
+          },
+        ],
+      },
+    ] as object[],
+  },
 });
 
 const makeRoot = (t: TestContext): string => {
