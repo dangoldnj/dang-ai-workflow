@@ -338,7 +338,8 @@ node .claude/scripts/sync-workflow.ts --commands --scripts --root /path/to/repo 
 
 | Flag | Effect |
 |---|---|
-| `--commands`, `--scripts` | Which directories to update. At least one is required; pass both to update both |
+| `--commands`, `--scripts` | Which directories to update. Pass both to update both |
+| `--claude-md` | Also update `.claude/CLAUDE.md`, keeping its `## LOCAL OVERRIDES` section. At least one of `--commands`, `--scripts`, or `--claude-md` is required |
 | `--commit REF` | Upstream ref to sync from. Defaults to `main` |
 | `--root PATH` | Repository to update. Defaults to the current working directory |
 | `--prune` | Also delete downstream files that the upstream commit no longer ships. Off by default |
@@ -347,6 +348,8 @@ node .claude/scripts/sync-workflow.ts --commands --scripts --root /path/to/repo 
 ### Behavior
 
 By default the script overwrites matching files but leaves additional files already present in the destination untouched. `--prune` also removes downstream files, and any directories left empty, that upstream no longer ships, so the destination stays convergent with upstream.
+
+`--claude-md` replaces everything above the `## LOCAL OVERRIDES` heading with upstream's version and keeps the local overrides section verbatim. It warns, listing each line, when local lines above that heading would be dropped, and warns when the local file has no overrides section and is replaced entirely. Preview with `--dry-run`, and move any lines you want to keep under `## LOCAL OVERRIDES` first.
 
 > [!WARNING]
 > `--prune` deletes files. Combine it with `--dry-run` to preview the deletions

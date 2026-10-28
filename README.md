@@ -49,6 +49,9 @@ node .claude/scripts/sync-workflow.ts --commands --scripts --dry-run
 
 # apply the update, dropping files upstream no longer ships
 node .claude/scripts/sync-workflow.ts --commands --scripts --prune
+
+# also update CLAUDE.md, keeping its LOCAL OVERRIDES section
+node .claude/scripts/sync-workflow.ts --claude-md --dry-run
 ```
 
 Pass `--commit` to pin to a specific commit instead of tracking upstream `main`, and `--root` to update a repository other than the current one. `--prune` deletes downstream files, so preview with `--dry-run` before the first pruning sync in a repo. See the [scripts reference](.claude/scripts/README.md#workflow-sync) for the full flag list.
