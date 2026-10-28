@@ -35,8 +35,9 @@ Then install the workflow hooks, which validate `brief.md` and preserve overwrit
 # report missing hooks and preview the settings change
 node .claude/scripts/setup-hooks.ts
 
-# add them to .claude/settings.json (or --local for settings.local.json)
-node .claude/scripts/setup-hooks.ts --write
+# add them to .claude/settings.json (or --local for settings.local.json);
+# --permissions also allowlists git status/diff, branch creation, and the workflow scripts
+node .claude/scripts/setup-hooks.ts --write --permissions
 ```
 
 ### Updating an installed copy

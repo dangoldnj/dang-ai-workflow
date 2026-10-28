@@ -216,12 +216,13 @@ node .claude/scripts/setup-hooks.ts --write --local
 |---|---|
 | `--write` | Add missing hooks. Without it, the script only reports |
 | `--local` | Target `settings.local.json` instead of `settings.json` |
+| `--permissions` | Also check and add the workflow's permission allowlist entries (git status/diff, branch creation, and the workflow scripts; add `git add`/`git commit` yourself if you want autopilot to commit without prompts). Without it, only hooks are checked |
 | `--root PATH` | Repository to check. Defaults to the current working directory |
 
 ### Behavior
 
-- A hook counts as installed when its command appears in either `settings.json` or `settings.local.json`.
-- Only missing hook entries are added. Other settings, hooks, and permissions are preserved, and a rerun changes nothing.
+- A hook or permission counts as installed when it appears in either `settings.json` or `settings.local.json`.
+- Only missing entries are added. Existing settings, hooks, and permissions are preserved, and a rerun changes nothing.
 - The target file is rewritten as 2-space-indented JSON.
 - A settings file that is not valid JSON is never written.
 
@@ -230,7 +231,7 @@ node .claude/scripts/setup-hooks.ts --write --local
 | Code | Meaning |
 |---|---|
 | `0` | All hooks are installed, or were just added |
-| `1` | Hooks are missing and `--write` was not given |
+| `1` | Hooks (or, with `--permissions`, permissions) are missing and `--write` was not given |
 | `2` | Usage error, or a settings file could not be parsed |
 
 ---
