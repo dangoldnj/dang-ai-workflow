@@ -3,7 +3,7 @@
 Finalize the work record.
 
 ## Should I run
-Always runs as the terminal phase.
+Always runs as the terminal phase, and only after the verified work is merged into the default branch. The merge is recorded in Decisions as `[90-close] [merged: <PR, branch, or commit>] [how it was confirmed]` after the latest 80-verify run. The router stops with `awaiting-merge` until that Decision exists; `continue` records it.
 
 This phase outputs no "Next command to run."
 
@@ -16,6 +16,7 @@ formats/phase.md
   - sections: What We Built
 
 ## Do
+- If no merge Decision follows the latest 80-verify run, stop and tell the user to run `continue` to confirm the merge
 - Double check with the user that they agree it is complete
 - Set frontmatter `status` to complete
 - Set frontmatter `current_step` to null

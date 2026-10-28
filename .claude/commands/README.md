@@ -19,9 +19,13 @@ After init, run `continue` to pick up where you left off. The command routes to 
 | `60-prep` | Per step | Packages execution context for one implementation step |
 | `70-implement` | Per step | Implements one step |
 | `80-verify` | Always | Verifies the implementation |
-| `90-close` | Always | Finalizes the work record |
+| `90-close` | After merge | Finalizes the work record |
 
 Self-gating phases record a Decision when they skip. `60-prep` and `70-implement` repeat as a pair for each plan step. Every phase stops at its boundary and waits for explicit user confirmation before advancing, unless running under `autopilot`, which advances until a hard stop or its `until` target.
+
+### Closing after merge
+
+`90-close` runs only after the verified work is merged into the default branch. Until then, `continue` stops with `awaiting-merge`. Once you have merged, run `continue`: it checks the pull request with `gh pr view` when one is known, or asks you, records a `[90-close] [merged: ...]` Decision, and runs `90-close`. Autopilot always stops at this point.
 
 ### Rework after failed verification
 

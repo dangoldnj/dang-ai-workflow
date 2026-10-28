@@ -10,7 +10,12 @@ Resume a workflow at the next step.
 - Read .claude/commands/formats/phase.md
 - Run universal validator and router: node .claude/scripts/validate-brief.ts --next thoughts/shared/work/<slug>
 - If validation reports errors, report the violations and stop
-- If the validator returns STOP, report the stop reason and stop
+- If the validator returns STOP `awaiting-merge`, confirm the merge:
+  - If the work has a known pull request, run `gh pr view <number> --json state,mergedAt`. `state` is `MERGED` after merge, squash, and rebase merges alike.
+  - Otherwise, or if `gh` is unavailable or reports anything else, ask the user whether the work is merged into the default branch.
+  - If it is merged, append `[90-close] [merged: <PR, branch, or commit>] [how it was confirmed]` to Decisions, with `[user-confirmed]` when the user confirmed it, and rerun the validator and router
+  - If it is not merged, report that 90-close waits for the merge and stop
+- If the validator returns any other STOP, report the stop reason and stop
 - If the validator returns NEXT, run phase precheck: node .claude/scripts/validate-brief.ts thoughts/shared/work/<slug> <next-phase>
 - If the phase precheck reports errors, report the violations and stop
 - Run the prechecked next phase

@@ -21,6 +21,7 @@ In addition to every stop from the validator, router, and phase files:
 - A test fails that is not declared as an expected failure (see formats/phase.md)
 - A commit is needed that the plan does not list for the step
 - `commits_authorized` is false and a step has finished 70-implement
+- The router returns STOP `awaiting-merge`. Stop before `continue` confirms the merge; do not merge or record it. Tell the user to merge, then run `continue`.
 - The context window is roughly 60-80% full, or compaction is near. Stop at the next phase boundary and tell the user to rerun autopilot in a new thread; all state is in the workspace files.
 
 ## Commits
