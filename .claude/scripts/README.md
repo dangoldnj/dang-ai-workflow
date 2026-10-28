@@ -148,6 +148,50 @@ The hook helper:
 
 ---
 
+## Workspace History
+
+`hooks/archive-workspace-file-pre-tool-use.cjs` is a `PreToolUse` hook that preserves workspace files before they are overwritten. Phase outputs such as `60-prep.md` and `70-implement.md` are rewritten for every step, and `50-plan.md` may be amended mid-implementation; the hook keeps every prior version.
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/scripts/hooks/archive-workspace-file-pre-tool-use.cjs"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Before a write to an existing file in `thoughts/shared/work/<slug>/`, the hook copies it to `<slug>/history/<name>[.<step>].<NNN>.<ext>`:
+
+| Archived file | Contains | Archive name |
+|---|---|---|
+| `60-prep.md` | `Selected step: B2` | `history/60-prep.B2.001.md`, then `.002`, ... |
+| `70-implement.md` | `Step: B2` | `history/70-implement.B2.001.md` |
+| `50-plan.md` | no step line | `history/50-plan.001.md` |
+| `notes/a.md` | no step line | `history/notes/a.001.md` |
+
+The hook:
+
+- Takes the step label from the archived file's own contents, so the label always names the step those contents belong to. Labels must be plain IDs (`[A-Za-z0-9_-]+`); anything else is archived without a label.
+- Numbers archives per name and step, starting at `001`.
+- Skips the copy when the contents match the latest archive, so failed or repeated edits do not create duplicates.
+- Ignores `brief.md`, `.brief.last-valid.md`, files under `history/`, files that do not exist yet, and writes outside `thoughts/shared/work/*/`.
+- Exits `2` if archiving fails, which blocks the write so nothing is overwritten unpreserved.
+
+> [!NOTE]
+> Writes made through Bash (`>`, `sed -i`, `rm`) do not trigger hooks and are not archived.
+
+---
+
 ## Brief Migration
 
 `migrate-brief.ts` upgrades old text-keyed briefs to `brief_version: 2`.

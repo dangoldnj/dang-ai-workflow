@@ -108,7 +108,7 @@ The workflow treats plans, decisions, implementation progress, and verification 
 ```
 .claude/
   CLAUDE.md                       # Root agent directives (role, rules, environment, style)
-  settings.example.json           # PostToolUse validator-hook configuration (optional)
+  settings.example.json           # Validator and history hook configuration (optional)
   commands/                       # Workflow phases, helpers, formats, and command reference
     formats/                      # Brief, phase, and presentation contracts
     legacy/                       # Retired command set, kept for reference only
@@ -117,7 +117,7 @@ The workflow treats plans, decisions, implementation progress, and verification 
     migrate-brief.ts              # Brief format migration
     summarize-briefs.ts           # Report on active work and promoted artifacts
     sync-workflow.ts              # In-place update from upstream
-    hooks/                        # PostToolUse hook helper (.cjs, runs on any Node)
+    hooks/                        # Validator and history hook helpers (.cjs, run on any Node)
     lib/                          # Parsing, validation, and reporting internals
     *.test.ts                     # Node test-runner suites
 .github/workflows/ci.yml          # Type-check and test on push and pull request
