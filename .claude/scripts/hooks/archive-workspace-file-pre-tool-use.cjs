@@ -10,7 +10,9 @@ const { basename, dirname, extname, join, relative } = require('node:path');
 
 // Workflow scratch files (60-prep.md, 70-implement.md, 50-plan.md, ...) are
 // overwritten as phases rerun. This hook copies the current contents into
-// <workspace>/history/ before every write, so no workspace content is lost.
+// <workspace>/history/ before the first write in each phase run, so no phase
+// loses what an earlier phase wrote. Later writes in the same run are not
+// archived: they are that run's own work in progress.
 // brief.md is excluded: its history is protected by the validator snapshot
 // and append-only rules.
 const HISTORY_DIR = 'history';
@@ -41,7 +43,11 @@ if (EXCLUDED_FILES.has(relativePath) || topLevel === HISTORY_DIR) {
 }
 
 try {
-  archive(filePath, join(workspacePath, HISTORY_DIR, dirname(relativePath)));
+  archive(
+    filePath,
+    join(workspacePath, HISTORY_DIR, dirname(relativePath)),
+    findPhaseRun(workspacePath),
+  );
 } catch (err) {
   process.stderr.write(
     `Refusing to overwrite ${filePath}: failed to archive its current contents to ${HISTORY_DIR}/: ${err instanceof Error ? err.message : err}\n`,
@@ -49,38 +55,32 @@ try {
   process.exit(2);
 }
 
-function archive(sourcePath, archiveDir) {
+// Archives are named <name>[.<step>].<NNN><ext>, where NNN is the phase run,
+// and taken once per file per run. The archive itself marks the run as done,
+// so it is taken even when its contents match an earlier archive.
+function archive(sourcePath, archiveDir, run) {
   const extension = extname(sourcePath);
-  const step = findStepLabel(readFileSync(sourcePath, 'utf8'));
-  const stem =
-    step === undefined
-      ? basename(sourcePath, extension)
-      : `${basename(sourcePath, extension)}.${step}`;
+  const name = basename(sourcePath, extension);
   const archivePattern = new RegExp(
-    `^${escapeRegExp(stem)}\\.(\\d{3,})${escapeRegExp(extension)}$`,
+    `^${escapeRegExp(name)}(?:\\.[A-Za-z0-9_-]+)?\\.(\\d{3,})${escapeRegExp(extension)}$`,
   );
 
   mkdirSync(archiveDir, { recursive: true });
 
-  const latest = readdirSync(archiveDir)
-    .map(name => ({ name, match: name.match(archivePattern) }))
-    .filter(entry => entry.match !== null)
-    .map(entry => ({ name: entry.name, number: Number(entry.match[1]) }))
-    .reduce(
-      (max, entry) =>
-        max === undefined || entry.number > max.number ? entry : max,
-      undefined,
-    );
-
   if (
-    latest !== undefined &&
-    readFileSync(join(archiveDir, latest.name)).equals(readFileSync(sourcePath))
+    readdirSync(archiveDir).some(
+      entry => Number(entry.match(archivePattern)?.[1]) === run,
+    )
   ) {
     return;
   }
 
-  const next = String((latest?.number ?? 0) + 1).padStart(3, '0');
-  copyFileSync(sourcePath, join(archiveDir, `${stem}.${next}${extension}`));
+  const step = findStepLabel(readFileSync(sourcePath, 'utf8'));
+  const stem = step === undefined ? name : `${name}.${step}`;
+  copyFileSync(
+    sourcePath,
+    join(archiveDir, `${stem}.${String(run).padStart(3, '0')}${extension}`),
+  );
 }
 
 // 60-prep.md names its step with `Selected step: <id>` and 70-implement.md
@@ -94,6 +94,34 @@ function findStepLabel(contents) {
   return step !== undefined && /^[A-Za-z0-9_-]+$/.test(step)
     ? step
     : undefined;
+}
+
+// Each phase appends `[<phase>] [ran]`, `[ran: <step>]`, or `[skipped]` to
+// brief.md Decisions when it finishes, so the count of those entries stays
+// fixed while a phase runs and grows by one before the next phase starts.
+// The current run is that count plus one; without brief.md it is run 1.
+function findPhaseRun(workspacePath) {
+  const briefPath = join(workspacePath, 'brief.md');
+
+  if (!existsSync(briefPath)) {
+    return 1;
+  }
+
+  const lines = readFileSync(briefPath, 'utf8').split(/\r?\n/);
+  const start = lines.findIndex(line => /^##\s+Decisions\s*$/.test(line));
+  const end = lines.findIndex(
+    (line, index) => index > start && /^##\s/.test(line),
+  );
+  const outcomes =
+    start === -1
+      ? []
+      : lines
+          .slice(start + 1, end === -1 ? undefined : end)
+          .filter(line =>
+            /^-\s+\[[^\]]+\]\s+\[(?:ran|ran:[^\]]*|skipped)\]/i.test(line),
+          );
+
+  return outcomes.length + 1;
 }
 
 function escapeRegExp(value) {
