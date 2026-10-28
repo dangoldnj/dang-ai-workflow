@@ -2,8 +2,13 @@ import { copyFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseBrief } from './lib/parse-brief.ts';
-import { LAST_VALID_SNAPSHOT, PHASES } from './lib/constants.ts';
+import {
+  LAST_VALID_SNAPSHOT,
+  PHASE_RUN_FILE,
+  PHASES,
+} from './lib/constants.ts';
 import { INVARIANTS } from './lib/invariants.ts';
+import { startPhaseRun } from './lib/phase-run.ts';
 import { requireNodeVersion } from './lib/require-node-version.ts';
 import { getNextWorkflowAction, type NextWorkflowAction } from './lib/next.ts';
 import type { ParsedBrief, Phase } from './lib/types.ts';
@@ -167,6 +172,18 @@ const main = (): void => {
     } catch (err) {
       console.error(
         `Failed to update ${workspace}/${LAST_VALID_SNAPSHOT}:`,
+        err instanceof Error ? err.message : err,
+      );
+      process.exit(2);
+    }
+  }
+
+  if (result.ok && mode === 'validate' && beforePhase !== undefined) {
+    try {
+      startPhaseRun(workspace, brief, beforePhase);
+    } catch (err) {
+      console.error(
+        `Failed to record the phase run in ${workspace}/${PHASE_RUN_FILE}:`,
         err instanceof Error ? err.message : err,
       );
       process.exit(2);

@@ -186,7 +186,9 @@ const getLatestPhaseOutcome = (
   return { outcome };
 };
 
-const parsePhaseOutcome = (choice: string): PhaseOutcome | undefined => {
+export const parsePhaseOutcome = (
+  choice: string,
+): PhaseOutcome | undefined => {
   const normalized = choice.toLowerCase();
   if (normalized === 'ran' || normalized.startsWith('ran:')) return 'ran';
   if (normalized === 'skipped') return 'skipped';
